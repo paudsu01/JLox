@@ -1,6 +1,8 @@
 package lox.scanner;
 
 import java.util.ArrayList;
+import lox.error.Error;
+
 import static lox.scanner.TokenType.*;
 
 public class LoxScanner{
@@ -93,6 +95,26 @@ public class LoxScanner{
                addToken((matchNext('=')) ? NEQ : NOT);
                break;
 
+            case '"':
+               // consume starting '"'
+               currentIndex++;
+               currentTokenStartIndex = currentIndex;
+
+               // consume characters until ending '"' not found
+               // support multi line strings
+               while ((!outOfTokens()) && peekAhead() != '"'){
+                    if (peekAhead() == '\n') line++;
+                    currentIndex++;
+               }
+
+               String lexeme = LoxCode.substring(currentTokenStartIndex, currentIndex+1);
+               addToken(STRING, lexeme);
+
+               if (outOfTokens()) Error.reportError(line, "Unterminated String");
+               // consume ending '"'
+               currentIndex++;
+               break;
+
             default:
                 break;
         }
@@ -109,7 +131,7 @@ public class LoxScanner{
     }
 
     private boolean outOfTokens(){
-        return currentIndex > LoxCode.length();
+        return currentIndex >= LoxCode.length();
     }
 
     // Get the next char
@@ -124,5 +146,19 @@ public class LoxScanner{
         if (peekAhead() != nextChar) return false;
         currentIndex++;
         return true;
+    }
+
+    // checks if current char is a num
+    private boolean isNum(char character){
+        return character >= '0' && character <= '9';
+    }
+
+    private boolean isAlpha(char character){
+        return (character >= 'a' && character <= 'z')
+            || (character >= 'A' && character <= 'Z');
+    }
+
+    private boolean isValidIdentifierChar(char character){
+        return (isAlpha(character)) || (character == '_');
     }
 }

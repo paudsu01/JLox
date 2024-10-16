@@ -16,4 +16,9 @@ public class Token{
 
         return;
     }
+
+    @Override
+    public String toString(){
+        return String.format("Line [%d] : %-15s %s", line, type.toString(), lexeme);
+    }
 }
