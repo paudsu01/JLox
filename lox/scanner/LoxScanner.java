@@ -33,9 +33,9 @@ public class LoxScanner{
     }
 
     private void scanToken(){
-        char current_char = LoxCode.charAt(currentIndex);
+        char currentChar = LoxCode.charAt(currentIndex);
 
-        switch (current_char) {
+        switch (currentChar) {
             // no need to tokenize whitespaces
             case '\n':
                 line++;
@@ -107,15 +107,35 @@ public class LoxScanner{
                     currentIndex++;
                }
 
-               String lexeme = LoxCode.substring(currentTokenStartIndex, currentIndex+1);
-               addToken(STRING, lexeme);
-
                if (outOfTokens()) Error.reportError(line, "Unterminated String");
-               // consume ending '"'
-               currentIndex++;
+               else{
+                    String lexeme = LoxCode.substring(currentTokenStartIndex, currentIndex+1);
+                    addToken(STRING, lexeme);
+                    // consume ending '"'
+                    currentIndex++;
+                }
                break;
 
             default:
+                if (isValidIdentifierChar(currentChar)){
+
+                } else if (isNum(currentChar)){
+
+                    int numOfDots=0;
+                    while (!outOfTokens() && isNumOrDot(peekAhead())){
+                        if (peekAhead() == '.') numOfDots++;
+                        currentIndex++;
+                    }
+
+                    if (numOfDots > 1) Error.reportError(line, "Invalid number literal");
+                    else if (LoxCode.charAt(currentIndex) == '.') Error.reportError(line, "Number literal cannot end with a '.'");
+                    else{ 
+                        Double value = Double.parseDouble(LoxCode.substring(currentTokenStartIndex, currentIndex+1));
+                        addToken(STRING, value);
+                    }
+
+                } else {
+                Error.reportScannerError(line, String.format("Unknown character: %c", currentChar));}
                 break;
         }
     }
@@ -131,7 +151,7 @@ public class LoxScanner{
     }
 
     private boolean outOfTokens(){
-        return currentIndex >= LoxCode.length();
+        return currentIndex >= (LoxCode.length() -1);
     }
 
     // Get the next char
@@ -151,6 +171,10 @@ public class LoxScanner{
     // checks if current char is a num
     private boolean isNum(char character){
         return character >= '0' && character <= '9';
+    }
+
+    private boolean isNumOrDot(char character){
+        return (isNum(character)) || (character == '.');
     }
 
     private boolean isAlpha(char character){
