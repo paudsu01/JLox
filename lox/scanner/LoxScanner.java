@@ -1,6 +1,8 @@
 package lox.scanner;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+
 import lox.error.Error;
 
 import static lox.scanner.TokenType.*;
@@ -12,10 +14,26 @@ public class LoxScanner{
     private int currentTokenStartIndex = 0;
     private int currentIndex = 0;
     private final ArrayList<Token> tokens = new ArrayList<>();
-
+    private final static HashMap<String, TokenType> keywordToTokenType = new HashMap<>();
 
     // static initalization block 
     static{
+        keywordToTokenType.put("class", CLASS);
+        keywordToTokenType.put("fun", FUN);
+        keywordToTokenType.put("var", VAR);
+        keywordToTokenType.put("for", FOR);
+        keywordToTokenType.put("while", WHILE);
+        keywordToTokenType.put("print", PRINT);
+        keywordToTokenType.put("return", RETURN);
+        keywordToTokenType.put("if", IF);
+        keywordToTokenType.put("else", ELSE);
+        keywordToTokenType.put("super", SUPER);
+        keywordToTokenType.put("this", THIS);
+        keywordToTokenType.put("or", OR);
+        keywordToTokenType.put("and", AND);
+        keywordToTokenType.put("true", TRUE);
+        keywordToTokenType.put("false", FALSE);
+        keywordToTokenType.put("nil", NIL);
 
     }
 
@@ -118,6 +136,18 @@ public class LoxScanner{
 
             default:
                 if (isValidIdentifierChar(currentChar)){
+
+                    while(isValidIdentifierChar(peekAhead())){
+                        currentIndex++;
+                    }
+
+                    String lexeme = LoxCode.substring(currentTokenStartIndex, currentIndex+1);
+                    TokenType lexemeToken = keywordToTokenType.get(lexeme);
+                    if (lexemeToken == null){
+                        addToken(IDENTIFIER);
+                    } else {
+                        addToken(lexemeToken);
+                    }
 
                 } else if (isNum(currentChar)){
 
