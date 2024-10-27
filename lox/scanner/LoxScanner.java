@@ -215,4 +215,8 @@ public class LoxScanner{
     private boolean isValidIdentifierChar(char character){
         return (isAlpha(character)) || (character == '_');
     }
+
+    public ArrayList<Token> tokens(){
+        return this.tokens;
+    }
 }

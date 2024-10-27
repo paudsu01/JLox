@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.Scanner;
 
 import lox.error.Error;
+import lox.scanner.*;
 
 public class Lox{
 
@@ -44,9 +45,10 @@ public class Lox{
 
     private static void run(String input){
         LoxScanner scanner = new LoxScanner(input);
+        scanner.scanTokens();
 
         for (Token token : scanner.tokens()){
-            System.out.println(token.type, token.value);
+            System.out.printf("%-20s\t%s\n", token.type, token.lexeme);
         }
         return;
     }

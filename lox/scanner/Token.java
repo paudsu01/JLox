@@ -2,10 +2,10 @@ package lox.scanner;
 
 public class Token{
 
-    final String lexeme;
-    final Object value;
+    final public String lexeme;
+    final public Object value;
     final int line;
-    final TokenType type;
+    final public TokenType type;
 
     public Token(TokenType type, String lexeme, Object value, int line){
 
