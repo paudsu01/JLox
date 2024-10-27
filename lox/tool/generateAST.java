@@ -41,7 +41,9 @@ public class generateAST{
         writer.printf("package %s;\n\n", packageName);
         writer.println("import lox.scanner.Token;");
 
-        writer.printf("abstract class %s {}\n\n", fileName);
+        writer.printf("\nabstract class %s {\n", fileName);
+        writer.println("\tabstract <R> R accept(Visitor<R> visitor);");
+        writer.println("}\n");
 
         for (String currentClass : classes){
            defineASTExtendedClass(writer, fileName, currentClass, classes_to_fields.get(currentClass));
@@ -77,6 +79,10 @@ public class generateAST{
         }
 
         writer.print("\t}\n");
+
+        writer.println("\n\t@Override");
+        writer.println("\t<R> R accept(Visitor<R> visit){");
+        writer.printf("\t return visit.visit%s%s(this);}\n", currentClass, fileName);
         writer.println("}\n");
     }
 
