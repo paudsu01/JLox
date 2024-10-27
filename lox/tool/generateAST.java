@@ -87,11 +87,11 @@ public class generateAST{
     }
 
     private static void defineVisitorInterface(PrintWriter writer, String fileName, String[] classes){
-        writer.println("\ninterface Visitor<T>{");
+        writer.println("\ninterface Visitor<R>{");
 
         for (String eachClass : classes){
             String methodName = eachClass + fileName;
-            writer.printf("\tT visit%s(%s expr);\n", methodName, methodName);
+            writer.printf("\tR visit%s(%s expr);\n", methodName, methodName);
         }
 
         writer.println("}");
