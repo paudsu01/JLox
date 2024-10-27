@@ -23,15 +23,22 @@ public class generateAST{
         String outputFile = commandLineArguments[0];
         String[] fileNamePath = outputFile.split("/");
         String fileName = fileNamePath[fileNamePath.length - 1].split("\\.")[0];
+        String packageName = "";
+        for (int i=0; i < fileNamePath.length -1;i++){
+            packageName = packageName + fileNamePath[i];
+            if (i == fileNamePath.length -2) break;
+            packageName = packageName + ".";
+        }
 
-        defineAST(outputFile, fileName, classes, classes_to_fields);
+        defineAST(packageName, outputFile, fileName, classes, classes_to_fields);
 
     }
 
-    private static void defineAST(String outputFilePath, String fileName, String [] classes, HashMap<String,String> classes_to_fields) throws IOException{
+    private static void defineAST(String packageName, String outputFilePath, String fileName, String [] classes, HashMap<String,String> classes_to_fields) throws IOException{
 
         PrintWriter writer = new PrintWriter(outputFilePath);
 
+        writer.printf("package %s;\n\n", packageName);
         writer.println("import lox.scanner.Token;");
 
         writer.printf("abstract class %s {}\n\n", fileName);
@@ -39,6 +46,8 @@ public class generateAST{
         for (String currentClass : classes){
            defineASTExtendedClass(writer, fileName, currentClass, classes_to_fields.get(currentClass));
         }
+        defineVisitorInterface(writer, fileName, classes);
+
         writer.close();
     }
 
@@ -69,5 +78,16 @@ public class generateAST{
 
         writer.print("\t}\n");
         writer.println("}\n");
+    }
+
+    private static void defineVisitorInterface(PrintWriter writer, String fileName, String[] classes){
+        writer.println("\ninterface Visitor<T>{");
+
+        for (String eachClass : classes){
+            String methodName = eachClass + fileName;
+            writer.printf("\tT visit%s(%s expr);\n", methodName, methodName);
+        }
+
+        writer.println("}");
     }
 }
