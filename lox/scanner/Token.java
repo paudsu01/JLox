@@ -4,7 +4,7 @@ public class Token{
 
     final public String lexeme;
     final public Object value;
-    final int line;
+    final public int line;
     final public TokenType type;
 
     public Token(TokenType type, String lexeme, Object value, int line){
