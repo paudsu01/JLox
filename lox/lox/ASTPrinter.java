@@ -1,4 +1,4 @@
-package lox.tool;
+package lox.lox;
 
 import lox.scanner.Token;
 import lox.scanner.TokenType;
