@@ -161,7 +161,7 @@ public class LoxScanner{
                     else if (LoxCode.charAt(currentIndex) == '.') Error.reportError(line, "Number literal cannot end with a '.'");
                     else{ 
                         Double value = Double.parseDouble(LoxCode.substring(currentTokenStartIndex, currentIndex+1));
-                        addToken(STRING, value);
+                        addToken(NUMBER, value);
                     }
 
                 } else {
@@ -181,12 +181,15 @@ public class LoxScanner{
     }
 
     private boolean outOfTokens(){
-        return currentIndex >= (LoxCode.length() -1);
+        return currentIndex >= (LoxCode.length());
     }
 
+    private boolean cannotPeekAhead(){
+        return currentIndex >= (LoxCode.length() - 1);
+    }
     // Get the next char
     private char peekAhead(){
-        return (outOfTokens()) ? '\0' : LoxCode.charAt(currentIndex+1);
+        return (cannotPeekAhead()) ? '\0' : LoxCode.charAt(currentIndex+1);
     }
 
     // Consume the next char if the next char is the provided char 

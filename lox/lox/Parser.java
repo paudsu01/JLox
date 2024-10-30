@@ -2,6 +2,9 @@ package lox.lox;
 
 import lox.scanner.Token;
 import lox.scanner.TokenType;
+
+import static lox.scanner.TokenType.SEMICOLON;
+
 import java.util.ArrayList;;
 
 public class Parser {
@@ -19,10 +22,12 @@ public class Parser {
 
     // Methods for grammar definitions
 
+    // expression -> equality
     private Expression parseExpression(){
         return parseEquality();
     }
 
+    // equality -> comparison ( ( "!=" | "==" ) comparison )*
     private Expression parseEquality(){
         Expression expression = parseComparison();
 
@@ -32,11 +37,12 @@ public class Parser {
             consumeToken();
 
             Expression expression2 = parseComparison();
-            new BinaryExpression(expression, token, expression2);
+            expression = new BinaryExpression(expression, token, expression2);
         }
         return expression;
     }
-
+    
+    // comparison -> term ( ( ">" | ">=" | "<" | "<=" ) term )* 
     private Expression parseComparison(){
         Expression expression = parseTerm();
 
@@ -46,11 +52,12 @@ public class Parser {
             consumeToken();
 
             Expression expression2 = parseTerm();
-            new BinaryExpression(expression, token, expression2);
+            expression = new BinaryExpression(expression, token, expression2);
         }
         return expression;
     }
 
+    // term -> factor ( ( "-" | "+" ) factor )*
     private Expression parseTerm(){
         Expression expression = parseFactor();
 
@@ -60,11 +67,12 @@ public class Parser {
             consumeToken();
 
             Expression expression2 = parseFactor();
-            new BinaryExpression(expression, token, expression2);
+            expression = new BinaryExpression(expression, token, expression2);
         }
         return expression;
     }
 
+    // factor -> unary (("*" | "/") unary)*
     private Expression parseFactor(){
         Expression expression = parseUnary();
 
@@ -74,20 +82,48 @@ public class Parser {
             consumeToken();
 
             Expression expression2 = parseUnary();
-            new BinaryExpression(expression, token, expression2);
+            expression = new BinaryExpression(expression, token, expression2);
         }
         return expression;
     }
 
+     // unary -> ( "!" | "-" ) unary | primary
     private Expression parseUnary(){
-        // TO DO 
+        if (matchCurrentToken(TokenType.SUBTRACT, TokenType.NOT)){
+            // consume matched token
+            Token token = getCurrentToken();
+            consumeToken();
+            return new UnaryExpression(token, parseUnary());
+
+        } else {
+            return parsePrimary();
+        }
     }
 
+    // primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
     private Expression parsePrimary(){
-        // TO DO
+        Token currentToken = getCurrentToken();
+        consumeToken();
+        switch (currentToken.lexeme) {
+            case "true":
+                return new LiteralExpression(true);
+            case "false":
+                return new LiteralExpression(false);
+            case "nil":
+                return new LiteralExpression(null);
+            case "(":
+                Expression expr = parseExpression();
+                // consume ")"
+                consumeToken();
+                return new GroupingExpression(expr);
+            default:
+                return new LiteralExpression(currentToken.value);
+        }
     }
 
     private boolean matchCurrentToken(TokenType... toMatchTokens){
+        if (noMoreTokens()) return false;
+
         Token current = getCurrentToken();
         for (TokenType toMatchToken : toMatchTokens) {
             if (toMatchToken == current.type) return true;
@@ -102,11 +138,15 @@ public class Parser {
     }
 
     private boolean noMoreTokens(){
-        return currentToken >= tokens.size();
+        return currentToken >= (tokens.size() -1);
     }
 
     private void consumeToken() {
         if (noMoreTokens()) throw new IndexOutOfBoundsException();
         currentToken++;
+    }
+
+    private void consumeToken(TokenType tokenType){
+        // TO DO ( ERROR )
     }
 }

@@ -45,11 +45,10 @@ public class Lox{
 
     private static void run(String input){
         LoxScanner scanner = new LoxScanner(input);
-        scanner.scanTokens();
-
-        for (Token token : scanner.tokens()){
-            System.out.printf("%-20s\t%s\n", token.type, token.lexeme);
-        }
+        Parser parser = new Parser(scanner.scanTokens());
+        Expression expr = parser.createParseTree();
+        
+        System.out.println(new ASTPrinter().print(expr));
         return;
     }
 

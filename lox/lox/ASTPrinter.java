@@ -13,7 +13,7 @@ public class ASTPrinter implements Visitor<String>{
         new Token(TokenType.MULTIPLY, "*", null, 1),
         new GroupingExpression(
             new LiteralExpression(45.67)));
-
+        
         System.out.println(new ASTPrinter().print(expression));
     }
 
@@ -21,7 +21,7 @@ public class ASTPrinter implements Visitor<String>{
 
     }
 
-    private String print(Expression expression){
+    public String print(Expression expression){
         return expression.accept(this);
     }
 
