@@ -42,7 +42,7 @@ public class LoxScanner{
     }
 
     public ArrayList<Token> scanTokens(){
-        while (!outOfTokens()){
+        while (!outOfTokensToConsume()){
             currentTokenStartIndex = currentIndex;
             scanToken();
         }
@@ -120,12 +120,12 @@ public class LoxScanner{
 
                // consume characters until ending '"' not found
                // support multi line strings
-               while ((!outOfTokens()) && peekAhead() != '"'){
+               while (peekAhead() != '"'){
                     if (peekAhead() == '\n') line++;
                     currentIndex++;
                }
 
-               if (outOfTokens()) Error.reportError(line, "Unterminated String");
+               if (cannotPeekAhead()) reportError(line, "Unterminated String");
                else{
                     String lexeme = LoxCode.substring(currentTokenStartIndex, currentIndex+1);
                     addToken(STRING, lexeme);
@@ -152,20 +152,23 @@ public class LoxScanner{
                 } else if (isNum(currentChar)){
 
                     int numOfDots=0;
-                    while (!outOfTokens() && isNumOrDot(peekAhead())){
+                    while (isNumOrDot(peekAhead())){
                         if (peekAhead() == '.') numOfDots++;
                         currentIndex++;
                     }
 
-                    if (numOfDots > 1) Error.reportError(line, "Invalid number literal");
-                    else if (LoxCode.charAt(currentIndex) == '.') Error.reportError(line, "Number literal cannot end with a '.'");
+                    if (numOfDots > 1) reportError(line, "Invalid number literal");
+
+                    else if (LoxCode.charAt(currentIndex) == '.') reportError(line, "Number literal cannot end with a '.'");
+
                     else{ 
                         Double value = Double.parseDouble(LoxCode.substring(currentTokenStartIndex, currentIndex+1));
                         addToken(NUMBER, value);
                     }
 
                 } else {
-                Error.reportScannerError(line, String.format("Unknown character: %c", currentChar));}
+                    reportScannerError(line, String.format("Unknown character: %c", currentChar));
+                }
                 break;
         }
     }
@@ -180,7 +183,7 @@ public class LoxScanner{
         tokens.add(new Token(type, lexeme, literal, line));
     }
 
-    private boolean outOfTokens(){
+    private boolean outOfTokensToConsume(){
         return currentIndex >= (LoxCode.length());
     }
 
@@ -221,5 +224,15 @@ public class LoxScanner{
 
     public ArrayList<Token> tokens(){
         return this.tokens;
+    }
+
+    private void reportError(int line, String message){
+        currentIndex++;
+        Error.reportError(line, message);
+    }
+
+    private void reportScannerError(int line, String message){
+        currentIndex++;
+        Error.reportScannerError(line, message);
     }
 }

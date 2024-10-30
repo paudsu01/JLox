@@ -1,9 +1,12 @@
 package lox.lox;
 
+import lox.error.Error;
 import lox.scanner.Token;
 import lox.scanner.TokenType;
 
+import static lox.scanner.TokenType.NUMBER;
 import static lox.scanner.TokenType.SEMICOLON;
+import static lox.scanner.TokenType.STRING;
 
 import java.util.ArrayList;;
 
@@ -17,7 +20,11 @@ public class Parser {
     }
 
     public Expression createParseTree(){
-        return parseExpression();
+        try {
+           return parseExpression(); 
+        } catch (ParserError e) {
+            return null;
+        }
     }
 
     // Methods for grammar definitions
@@ -101,7 +108,7 @@ public class Parser {
     }
 
     // primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
-    private Expression parsePrimary(){
+    private Expression parsePrimary() {
         Token currentToken = getCurrentToken();
         consumeToken();
         switch (currentToken.lexeme) {
@@ -114,15 +121,21 @@ public class Parser {
             case "(":
                 Expression expr = parseExpression();
                 // consume ")"
-                consumeToken();
+                consumeToken(TokenType.RIGHT_PAREN);
                 return new GroupingExpression(expr);
             default:
-                return new LiteralExpression(currentToken.value);
+                if (currentToken.type == NUMBER || currentToken.type == STRING){
+                    return new LiteralExpression(currentToken.value);
+                } else {
+                    reportParserError(currentToken, "Expected STRING or NUMBER");
+                    return new LiteralExpression(null);
+                }
         }
     }
 
+    // Helper methods
     private boolean matchCurrentToken(TokenType... toMatchTokens){
-        if (noMoreTokens()) return false;
+        if (noMoreTokensToConsume()) return false;
 
         Token current = getCurrentToken();
         for (TokenType toMatchToken : toMatchTokens) {
@@ -131,22 +144,67 @@ public class Parser {
         return false;
     }
 
-    // Helper methods
-
     private Token getCurrentToken(){
         return tokens.get(currentToken);
     }
 
-    private boolean noMoreTokens(){
-        return currentToken >= (tokens.size() -1);
+    // will return True if the last token has been consumed
+    private boolean noMoreTokensToConsume(){
+        return currentToken >= tokens.size();
     }
 
     private void consumeToken() {
-        if (noMoreTokens()) throw new IndexOutOfBoundsException();
+        if (noMoreTokensToConsume()) throw new IndexOutOfBoundsException();
         currentToken++;
     }
 
     private void consumeToken(TokenType tokenType){
-        // TO DO ( ERROR )
+        if (getCurrentToken().type == tokenType) {
+            consumeToken();
+        } else {
+            reportParserError(getCurrentToken(), String.format("Expected %s", tokenType));
+        }
     }
+
+    // Error Handling methods 
+
+    private void reportParserError(Token token, String message){
+        Error.reportParserError(token, message);
+        throw new ParserError();
+    }
+
+    // consumes token until we get to a state we can start parsing from again
+    private void synchronize(){
+        // consume the token that led to error
+        consumeToken();
+
+        // keep consuming tokens until we get either ; (end of that statement, expression) OR
+        // one of keywords : CLASS, FUN, VAR, FOR, WHILE, PRINT, RETURN, IF 
+
+        while (!noMoreTokensToConsume()){
+
+            switch (getCurrentToken().type) {
+                case SEMICOLON:
+                    consumeToken();
+                    return; 
+
+                case CLASS:
+                case FUN:
+                case VAR:
+                case FOR:
+                case WHILE:
+                case PRINT:
+                case RETURN:
+                case IF:
+                    return;
+                
+                default:
+                    consumeToken();
+            }
+        }
+    }
+}
+
+// New exception for parsing error
+class ParserError extends RuntimeException{
 }

@@ -36,18 +36,22 @@ public class Lox{
         while (true){
             System.out.print(">> ");
             user_input = scanner.nextLine();
-
             if (user_input.equals("exit")) break;
+
             run(user_input);
+            Error.hadError = false;  
         }
         scanner.close();
     }
 
     private static void run(String input){
         LoxScanner scanner = new LoxScanner(input);
+        if (Error.hadError) return;
+
         Parser parser = new Parser(scanner.scanTokens());
         Expression expr = parser.createParseTree();
-        
+        if (Error.hadError) return;
+
         System.out.println(new ASTPrinter().print(expr));
         return;
     }
