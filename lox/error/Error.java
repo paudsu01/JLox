@@ -1,17 +1,15 @@
 package lox.error;
 
-import static lox.scanner.TokenType.STRING;
-
-import lox.lox.Parser;
 import lox.scanner.Token;
-import lox.scanner.TokenType;
 import lox.lox.ParserError;
 
 public class Error{
 	
 	public static boolean hadError = false;
+	public static boolean hadRuntimeError = false;
 
 	public static void reportParserError(ParserError err){
+		hadRuntimeError = true;
 		reportError(err.token.line, String.format("Got %s, %s", err.token.type, err.message));
 	}
 
