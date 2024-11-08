@@ -53,6 +53,7 @@ public class Lox{
         if (Error.hadError) return;
 
         System.out.println(new ASTPrinter().print(expr));
+        new Interpreter(expr).interpret();
         return;
     }
 

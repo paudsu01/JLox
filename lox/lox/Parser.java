@@ -5,7 +5,6 @@ import lox.scanner.Token;
 import lox.scanner.TokenType;
 
 import static lox.scanner.TokenType.NUMBER;
-import static lox.scanner.TokenType.SEMICOLON;
 import static lox.scanner.TokenType.STRING;
 
 import java.util.ArrayList;;
