@@ -5,7 +5,6 @@ import lox.scanner.Token;
 import lox.scanner.TokenType;
 
 import static lox.scanner.TokenType.NUMBER;
-import static lox.scanner.TokenType.SEMICOLON;
 import static lox.scanner.TokenType.STRING;
 
 import java.util.ArrayList;;
@@ -169,8 +168,9 @@ public class Parser {
     // Error Handling methods 
 
     private void reportParserError(Token token, String message){
-        Error.reportParserError(token, message);
-        throw new ParserError();
+        ParserError err = new ParserError(token, message);
+        Error.reportParserError(err);
+        throw err;
     }
 
     // consumes token until we get to a state we can start parsing from again
@@ -203,8 +203,4 @@ public class Parser {
             }
         }
     }
-}
-
-// New exception for parsing error
-class ParserError extends RuntimeException{
 }

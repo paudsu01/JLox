@@ -40,6 +40,7 @@ public class Lox{
 
             run(user_input);
             Error.hadError = false;  
+            Error.hadRuntimeError = false;  
         }
         scanner.close();
     }
@@ -52,7 +53,9 @@ public class Lox{
         Expression expr = parser.createParseTree();
         if (Error.hadError) return;
 
-        System.out.println(new ASTPrinter().print(expr));
+        Interpreter interpreter = new Interpreter(expr);
+        interpreter.interpret();
+
         return;
     }
 
