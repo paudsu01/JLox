@@ -2,15 +2,21 @@ package lox.error;
 
 import static lox.scanner.TokenType.STRING;
 
+import lox.lox.Parser;
 import lox.scanner.Token;
 import lox.scanner.TokenType;
+import lox.lox.ParserError;
 
 public class Error{
 	
 	public static boolean hadError = false;
 
-	public static void reportParserError(Token tokenGot, String message){
-		reportError(tokenGot.line, String.format("Got %s, %s", tokenGot.type, message));
+	public static void reportParserError(ParserError err){
+		reportError(err.token.line, String.format("Got %s, %s", err.token.type, err.message));
+	}
+
+	public static void reportOperandError(Token token, String message){
+		reportError(token.line, String.format("%s with %s operator", message, token.lexeme));
 	}
 
 	public static void reportScannerError(int line, String message){
