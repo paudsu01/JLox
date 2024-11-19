@@ -3,6 +3,8 @@ package lox.lox;
 import java.util.ArrayList;
 
 import lox.error.Error;
+import lox.error.RuntimeError;
+
 import lox.scanner.Token;
 
 public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<Object>{
@@ -177,16 +179,5 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         if (stringValue.endsWith(".0")) return stringValue.substring(0, stringValue.length()-2);
         else return stringValue;
 
-    }
-}
-
-class RuntimeError extends RuntimeException{
-
-    Token token;
-    String message;
-
-    RuntimeError(Token token, String message){
-        this.token = token;
-        this.message = message;
     }
 }

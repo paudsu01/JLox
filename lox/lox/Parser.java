@@ -1,6 +1,8 @@
 package lox.lox;
 
 import lox.error.Error;
+import lox.error.ParserError;
+
 import lox.scanner.Token;
 import lox.scanner.TokenType;
 
@@ -18,12 +20,14 @@ public class Parser {
     }
 
     public ArrayList<Statement> parse(){
+
         ArrayList<Statement> statements = new ArrayList<>();
         while (!noMoreTokensToConsume()){
             if (getCurrentToken().type == TokenType.EOF) break;
                 statements.add(parseDeclaration());
         }
         return statements;
+
     }
 
     // Methods for grammar definitions
@@ -40,7 +44,8 @@ public class Parser {
     }
 
     // varDec -> "var" IDENTIFIER ("=" expression)? ";"
-    private Statement parseVarDeclaration(){
+    private Statement parseVarDeclaration() {
+
        consumeToken(TokenType.VAR);
        if (! matchCurrentToken(TokenType.IDENTIFIER)) consumeToken(TokenType.IDENTIFIER);
 
@@ -54,6 +59,7 @@ public class Parser {
 
        consumeToken(TokenType.SEMICOLON);
        return new VarDecStatement(varName.name, initializer);
+
     }
 
 
