@@ -4,8 +4,7 @@ import lox.error.Error;
 import lox.scanner.Token;
 import lox.scanner.TokenType;
 
-import static lox.scanner.TokenType.NUMBER;
-import static lox.scanner.TokenType.STRING;
+import static lox.scanner.TokenType.*;
 
 import java.util.ArrayList;;
 
@@ -18,15 +17,39 @@ public class Parser {
         this.tokens = tokens;
     }
 
-    public Expression createParseTree(){
-        try {
-           return parseExpression(); 
-        } catch (ParserError e) {
-            return null;
+    public ArrayList<Statement> parse(){
+        ArrayList<Statement> statements = new ArrayList<>();
+        while (! noMoreTokensToConsume()){
+            statements.add(parseStatement());
         }
+        return statements;
     }
 
     // Methods for grammar definitions
+
+    // statement -> expresssionStatment | printStatement
+    private Statement parseStatement(){
+        if (matchCurrentToken(TokenType.PRINT)) return parsePrintStatement();
+        else return parseExpressionStatement();
+    }
+
+    // printStatement -> "print" expression ";"
+    private Statement parsePrintStatement(){
+
+        consumeToken(TokenType.PRINT);
+        Expression expr = parseExpression();
+        consumeToken(TokenType.SEMICOLON);
+
+        return new PrintStatement(expr);
+    }
+
+    // expressionStatement -> expression ";"
+    private Statement parseExpressionStatement(){
+
+        Expression expr = parseExpression();
+        consumeToken(TokenType.SEMICOLON);
+        return new ExpressionStatement(expr);
+    }
 
     // expression -> equality
     private Expression parseExpression(){
