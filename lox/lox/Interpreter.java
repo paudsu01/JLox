@@ -10,9 +10,11 @@ import lox.scanner.Token;
 public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<Object>{
    
     private final ArrayList<Statement> statements;
+    private final Environment environment;
 
-    public Interpreter(ArrayList<Statement> stmnts){
+    public Interpreter(ArrayList<Statement> stmnts, Environment env){
         statements = stmnts;
+        environment = env;
     }
 
     protected void interpret(){
@@ -39,7 +41,20 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         return null;
     }
 
+    @Override
+    public Object visitVarDecStatement(VarDecStatement stmt) {
+        Object value = null;
+        if (stmt.initializer != null) value = evaluate(stmt.initializer);
+        environment.add(stmt.name.lexeme, value);
+        return null;
+    }
+
     // VISITOR PATTERN visit methods for expression
+
+    @Override
+    public Object visitVariableExpression(VariableExpression expr) {
+        return environment.get(expr.name);
+    }
 
     @Override
     public Object visitBinaryExpression(BinaryExpression expr) {
@@ -180,4 +195,5 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         else return stringValue;
 
     }
+
 }
