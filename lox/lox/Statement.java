@@ -3,7 +3,7 @@ package lox.lox;
 import lox.scanner.Token;
 
 abstract class Statement {
-	abstract <R> R accept(Visitor<R> visitor);
+	abstract <R> R accept(StatementVisitor<R> visitor);
 }
 
 class ExpressionStatement extends Statement{
@@ -14,7 +14,7 @@ class ExpressionStatement extends Statement{
 	}
 
 	@Override
-	<R> R accept(Visitor<R> visit){
+	<R> R accept(StatementVisitor<R> visit){
 	 return visit.visitExpressionStatement(this);}
 }
 
@@ -26,12 +26,12 @@ class PrintStatement extends Statement{
 	}
 
 	@Override
-	<R> R accept(Visitor<R> visit){
+	<R> R accept(StatementVisitor<R> visit){
 	 return visit.visitPrintStatement(this);}
 }
 
 
-interface Visitor<R>{
-	R visitExpressionStatement(ExpressionStatement expr);
-	R visitPrintStatement(PrintStatement expr);
+interface StatementVisitor<R>{
+	R visitExpressionStatement(ExpressionStatement stmt);
+	R visitPrintStatement(PrintStatement stmt);
 }

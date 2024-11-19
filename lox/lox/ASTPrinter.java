@@ -3,7 +3,7 @@ package lox.lox;
 import lox.scanner.Token;
 import lox.scanner.TokenType;
 
-public class ASTPrinter implements Visitor<String>{
+public class ASTPrinter implements ExpressionVisitor<String>{
 
     public static void main(String[] commandLineArguments){
         Expression expression = new BinaryExpression(

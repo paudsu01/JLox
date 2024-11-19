@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Scanner;
+import java.util.ArrayList;
 
 import lox.error.Error;
 import lox.scanner.*;
@@ -50,10 +51,10 @@ public class Lox{
         if (Error.hadError) return;
 
         Parser parser = new Parser(scanner.scanTokens());
-        Expression expr = parser.createParseTree();
+        ArrayList<Statement> statements = parser.parse();
         if (Error.hadError) return;
 
-        Interpreter interpreter = new Interpreter(expr);
+        Interpreter interpreter = new Interpreter(statements);
         interpreter.interpret();
 
         return;

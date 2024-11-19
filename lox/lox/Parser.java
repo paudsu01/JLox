@@ -19,10 +19,17 @@ public class Parser {
 
     public ArrayList<Statement> parse(){
         ArrayList<Statement> statements = new ArrayList<>();
-        while (! noMoreTokensToConsume()){
-            statements.add(parseStatement());
+        try{
+
+            while (!noMoreTokensToConsume()){
+                if (getCurrentToken().type == TokenType.EOF) break;
+                    statements.add(parseStatement());
+            }
+            return statements;
+
+        } catch (ParserError e){
+            return null;
         }
-        return statements;
     }
 
     // Methods for grammar definitions

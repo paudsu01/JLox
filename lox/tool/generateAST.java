@@ -43,7 +43,7 @@ public class generateAST{
         writer.println("import lox.scanner.Token;");
 
         writer.printf("\nabstract class %s {\n", fileName);
-        writer.println("\tabstract <R> R accept(Visitor<R> visitor);");
+        writer.printf("\tabstract <R> R accept(%sVisitor<R> visitor);\n", fileName);
         writer.println("}\n");
 
         for (String currentClass : classes){
@@ -82,17 +82,18 @@ public class generateAST{
         writer.print("\t}\n");
 
         writer.println("\n\t@Override");
-        writer.println("\t<R> R accept(Visitor<R> visit){");
+        writer.printf("\t<R> R accept(%sVisitor<R> visit){\n", fileName);
         writer.printf("\t return visit.visit%s%s(this);}\n", currentClass, fileName);
         writer.println("}\n");
     }
 
     private static void defineVisitorInterface(PrintWriter writer, String fileName, String[] classes){
-        writer.println("\ninterface Visitor<R>{");
+        writer.printf("\ninterface %sVisitor<R>{\n", fileName);
 
         for (String eachClass : classes){
             String methodName = eachClass + fileName;
-            writer.printf("\tR visit%s(%s expr);\n", methodName, methodName);
+            if (fileName.equals("Expression")) writer.printf("\tR visit%s(%s expr);\n", methodName, methodName);
+            else writer.printf("\tR visit%s(%s stmt);\n", methodName, methodName);
         }
 
         writer.println("}");
