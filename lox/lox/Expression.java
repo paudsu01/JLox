@@ -60,10 +60,23 @@ class LiteralExpression extends Expression{
 	 return visit.visitLiteralExpression(this);}
 }
 
+class VariableExpression extends Expression{
+	final Token name;
+
+	VariableExpression(Token name){
+		this.name = name;
+	}
+
+	@Override
+	<R> R accept(ExpressionVisitor<R> visit){
+	 return visit.visitVariableExpression(this);}
+}
+
 
 interface ExpressionVisitor<R>{
 	R visitBinaryExpression(BinaryExpression expr);
 	R visitUnaryExpression(UnaryExpression expr);
 	R visitGroupingExpression(GroupingExpression expr);
 	R visitLiteralExpression(LiteralExpression expr);
+	R visitVariableExpression(VariableExpression expr);
 }

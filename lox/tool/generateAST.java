@@ -1,7 +1,6 @@
 package lox.tool;
 
 import java.util.HashMap;
-import java.util.Arrays;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -14,19 +13,21 @@ public class generateAST{
         }
 
         // Define the classes and their fields for the output file for Expression.java
-        String [] exprClasses = {"Binary", "Unary", "Grouping", "Literal"};
+        String [] exprClasses = {"Binary", "Unary", "Grouping", "Literal", "Variable"};
         HashMap<String, String> exprClassesToFields = new HashMap<>();
         exprClassesToFields.put(exprClasses[0], "Expression left:Token operator:Expression right");
         exprClassesToFields.put(exprClasses[1], "Token operator:Expression expression");
         exprClassesToFields.put(exprClasses[2], "Expression expression");
         exprClassesToFields.put(exprClasses[3], "Object value");
+        exprClassesToFields.put(exprClasses[4], "Token name");
 
 
         // Define the classes and their fields for the output file for Statement.java
-        String [] stmtClasses = {"Expression", "Print"};
+        String [] stmtClasses = {"Expression", "Print", "VarDec"};
         HashMap<String, String> stmtClassesToFields = new HashMap<>();
         stmtClassesToFields.put(stmtClasses[0], "Expression expression");
         stmtClassesToFields.put(stmtClasses[1], "Expression expression");
+        stmtClassesToFields.put(stmtClasses[2], "Token name:Expression initializer");
 
         // Generate files Expression.java and Statement.java
         String packageName = "lox.lox";

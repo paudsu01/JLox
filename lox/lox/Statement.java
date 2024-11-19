@@ -30,8 +30,23 @@ class PrintStatement extends Statement{
 	 return visit.visitPrintStatement(this);}
 }
 
+class VarDecStatement extends Statement{
+	final Token name;
+	final Expression initializer;
+
+	VarDecStatement(Token name, Expression initializer){
+		this.name = name;
+		this.initializer = initializer;
+	}
+
+	@Override
+	<R> R accept(StatementVisitor<R> visit){
+	 return visit.visitVarDecStatement(this);}
+}
+
 
 interface StatementVisitor<R>{
 	R visitExpressionStatement(ExpressionStatement stmt);
 	R visitPrintStatement(PrintStatement stmt);
+	R visitVarDecStatement(VarDecStatement stmt);
 }

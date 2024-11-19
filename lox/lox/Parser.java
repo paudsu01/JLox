@@ -19,20 +19,43 @@ public class Parser {
 
     public ArrayList<Statement> parse(){
         ArrayList<Statement> statements = new ArrayList<>();
-        try{
-
-            while (!noMoreTokensToConsume()){
-                if (getCurrentToken().type == TokenType.EOF) break;
-                    statements.add(parseStatement());
-            }
-            return statements;
-
-        } catch (ParserError e){
-            return null;
+        while (!noMoreTokensToConsume()){
+            if (getCurrentToken().type == TokenType.EOF) break;
+                statements.add(parseDeclaration());
         }
+        return statements;
     }
 
     // Methods for grammar definitions
+
+    // declaration -> varDec | statement
+    private Statement parseDeclaration(){
+       try{
+            if (matchCurrentToken(TokenType.VAR)) return parseVarDeclaration();
+            else return parseStatement(); 
+       } catch (ParserError err){
+            synchronize();
+            return null;
+       }
+    }
+
+    // varDec -> "var" IDENTIFIER ("=" expression)? ";"
+    private Statement parseVarDeclaration(){
+       consumeToken(TokenType.VAR);
+       if (! matchCurrentToken(TokenType.IDENTIFIER)) consumeToken(TokenType.IDENTIFIER);
+
+       VariableExpression varName = (VariableExpression) parsePrimary();
+
+       Expression initializer = null;
+       if (matchCurrentToken(TokenType.ASSIGNMENT)) {
+            consumeToken(TokenType.ASSIGNMENT);
+            initializer = parseExpression();
+       }
+
+       consumeToken(TokenType.SEMICOLON);
+       return new VarDecStatement(varName.name, initializer);
+    }
+
 
     // statement -> expresssionStatment | printStatement
     private Statement parseStatement(){
@@ -155,8 +178,10 @@ public class Parser {
             default:
                 if (currentToken.type == NUMBER || currentToken.type == STRING){
                     return new LiteralExpression(currentToken.value);
+                } else if (currentToken.type == IDENTIFIER){
+                    return new VariableExpression(currentToken);
                 } else {
-                    reportParserError(currentToken, "Expected STRING or NUMBER");
+                    reportParserError(currentToken, "Expected STRING or NUMBER or IDENTIFIER");
                     return new LiteralExpression(null);
                 }
         }

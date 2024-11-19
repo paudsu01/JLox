@@ -1,6 +1,5 @@
 package lox.lox;
 
-import static lox.scanner.TokenType.STRING;
 import java.util.ArrayList;
 
 import lox.error.Error;
