@@ -1,6 +1,7 @@
 package lox.tool;
 
 import java.util.HashMap;
+import java.util.Arrays;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -8,33 +9,33 @@ public class generateAST{
 
     public static void main(String [] commandLineArguments) throws IOException{
         
-        if (commandLineArguments.length != 1) {
-            System.err.println("Usage error: Provide outputASTFile as argument");
+        if (commandLineArguments.length > 0) {
+            System.err.println("Usage error: Run from base directory without arguments: Modify generateAST.java if needed");
         }
 
-        // Define the classes and their fields for the output file 
-        String [] classes = {"Binary", "Unary", "Grouping", "Literal"};
-        HashMap<String, String> classes_to_fields = new HashMap<>();
-        classes_to_fields.put(classes[0], "Expression left:Token operator:Expression right");
-        classes_to_fields.put(classes[1], "Token operator:Expression expression");
-        classes_to_fields.put(classes[2], "Expression expression");
-        classes_to_fields.put(classes[3], "Object value");
+        // Define the classes and their fields for the output file for Expression.java
+        String [] exprClasses = {"Binary", "Unary", "Grouping", "Literal"};
+        HashMap<String, String> exprClassesToFields = new HashMap<>();
+        exprClassesToFields.put(exprClasses[0], "Expression left:Token operator:Expression right");
+        exprClassesToFields.put(exprClasses[1], "Token operator:Expression expression");
+        exprClassesToFields.put(exprClasses[2], "Expression expression");
+        exprClassesToFields.put(exprClasses[3], "Object value");
 
-        String outputFile = commandLineArguments[0];
-        String[] fileNamePath = outputFile.split("/");
-        String fileName = fileNamePath[fileNamePath.length - 1].split("\\.")[0];
-        String packageName = "";
-        for (int i=0; i < fileNamePath.length -1;i++){
-            packageName = packageName + fileNamePath[i];
-            if (i == fileNamePath.length -2) break;
-            packageName = packageName + ".";
-        }
 
-        defineAST(packageName, outputFile, fileName, classes, classes_to_fields);
+        // Define the classes and their fields for the output file for Statement.java
+        String [] stmtClasses = {"Expression", "Print"};
+        HashMap<String, String> stmtClassesToFields = new HashMap<>();
+        stmtClassesToFields.put(stmtClasses[0], "Expression expression");
+        stmtClassesToFields.put(stmtClasses[1], "Expression expression");
+
+        // Generate files Expression.java and Statement.java
+        String packageName = "lox.lox";
+        defineAST(packageName, "lox/lox/Expression.java", "Expression", exprClasses, exprClassesToFields);
+        defineAST(packageName, "lox/lox/Statement.java", "Statement", stmtClasses, stmtClassesToFields);
 
     }
 
-    private static void defineAST(String packageName, String outputFilePath, String fileName, String [] classes, HashMap<String,String> classes_to_fields) throws IOException{
+    private static void defineAST(String packageName, String outputFilePath, String fileName, String [] classes, HashMap<String,String> classesToFields) throws IOException{
 
         PrintWriter writer = new PrintWriter(outputFilePath);
 
@@ -46,7 +47,7 @@ public class generateAST{
         writer.println("}\n");
 
         for (String currentClass : classes){
-           defineASTExtendedClass(writer, fileName, currentClass, classes_to_fields.get(currentClass));
+           defineASTExtendedClass(writer, fileName, currentClass, classesToFields.get(currentClass));
         }
         defineVisitorInterface(writer, fileName, classes);
 
