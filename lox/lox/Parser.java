@@ -87,9 +87,27 @@ public class Parser {
         return new ExpressionStatement(expr);
     }
 
-    // expression -> equality
+    // expression -> assignment
     private Expression parseExpression(){
-        return parseEquality();
+        return parseAssignment();
+    }
+
+    // assignment -> equality | IDENTIFIER "=" assignment
+    private Expression parseAssignment(){
+
+        Expression expr = parseEquality();
+
+        if (expr instanceof VariableExpression && matchCurrentToken(TokenType.ASSIGNMENT)){
+            consumeToken(TokenType.ASSIGNMENT);
+            Expression expr2 = parseAssignment();
+            return new AssignmentExpression(((VariableExpression) expr).name, expr2);
+
+        } else if (matchCurrentToken(TokenType.ASSIGNMENT)){
+            // error since invalid assignment target
+            reportParserError(getCurrentToken(), "Invalid assignment target");
+            
+        }
+        return expr;
     }
 
     // equality -> comparison ( ( "!=" | "==" ) comparison )*
@@ -188,9 +206,9 @@ public class Parser {
                     return new VariableExpression(currentToken);
                 } else {
                     reportParserError(currentToken, "Expected STRING or NUMBER or IDENTIFIER");
-                    return new LiteralExpression(null);
                 }
         }
+        return null;
     }
 
     // Helper methods
