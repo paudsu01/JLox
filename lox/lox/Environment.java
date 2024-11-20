@@ -25,9 +25,11 @@ public class Environment {
 
     Object get(Token token){
         if (environment.containsKey(token.lexeme)) return environment.get(token.lexeme);
+        if (superEnvironment != null) return superEnvironment.get(token);
 
         reportAndThrowUndefinedVariableError(token);
-        return null;    
+        // Unreachable
+        return null;
     }
 
     void define(String name, Object value){
@@ -35,8 +37,11 @@ public class Environment {
     }
 
     void assign(Token name, Object newValue){
+
         if (environment.containsKey(name.lexeme)) environment.put(name.lexeme, newValue);
+        else if (superEnvironment != null) superEnvironment.assign(name, newValue);
         else reportAndThrowUndefinedVariableError(name);
+        
     }
 
     // Error report methods

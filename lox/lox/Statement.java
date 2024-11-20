@@ -1,6 +1,7 @@
 package lox.lox;
 
 import lox.scanner.Token;
+import java.util.ArrayList;
 
 abstract class Statement {
 	abstract <R> R accept(StatementVisitor<R> visitor);
@@ -44,9 +45,22 @@ class VarDecStatement extends Statement{
 	 return visit.visitVarDecStatement(this);}
 }
 
+class BlockStatement extends Statement{
+	final ArrayList<Statement> statements;
+
+	BlockStatement(ArrayList<Statement> statements){
+		this.statements = statements;
+	}
+
+	@Override
+	<R> R accept(StatementVisitor<R> visit){
+	 return visit.visitBlockStatement(this);}
+}
+
 
 interface StatementVisitor<R>{
 	R visitExpressionStatement(ExpressionStatement stmt);
 	R visitPrintStatement(PrintStatement stmt);
 	R visitVarDecStatement(VarDecStatement stmt);
+	R visitBlockStatement(BlockStatement stmt);
 }

@@ -24,11 +24,12 @@ public class generateAST{
 
 
         // Define the classes and their fields for the output file for Statement.java
-        String [] stmtClasses = {"Expression", "Print", "VarDec"};
+        String [] stmtClasses = {"Expression", "Print", "VarDec", "Block"};
         HashMap<String, String> stmtClassesToFields = new HashMap<>();
         stmtClassesToFields.put(stmtClasses[0], "Expression expression");
         stmtClassesToFields.put(stmtClasses[1], "Expression expression");
         stmtClassesToFields.put(stmtClasses[2], "Token name:Expression initializer");
+        stmtClassesToFields.put(stmtClasses[3], "ArrayList<Statement> statements");
 
         // Generate files Expression.java and Statement.java
         String packageName = "lox.lox";
@@ -43,6 +44,7 @@ public class generateAST{
 
         writer.printf("package %s;\n\n", packageName);
         writer.println("import lox.scanner.Token;");
+        if (fileName.equals("Statement")) writer.println("import java.util.ArrayList;");
 
         writer.printf("\nabstract class %s {\n", fileName);
         writer.printf("\tabstract <R> R accept(%sVisitor<R> visitor);\n", fileName);

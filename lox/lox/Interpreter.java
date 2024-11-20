@@ -10,7 +10,7 @@ import lox.scanner.Token;
 public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<Object>{
    
     private final ArrayList<Statement> statements;
-    private final Environment environment;
+    private Environment environment;
 
     public Interpreter(ArrayList<Statement> stmnts, Environment env){
         statements = stmnts;
@@ -46,6 +46,21 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         Object value = null;
         if (stmt.initializer != null) value = evaluate(stmt.initializer);
         environment.define(stmt.name.lexeme, value);
+        return null;
+    }
+
+    @Override
+    public Object visitBlockStatement(BlockStatement stmt) {
+        // Setup new environment
+        Environment superEnvironment = environment;
+        environment = new Environment(environment);
+
+        for (Statement statement : stmt.statements){
+            evaluate(statement);
+        }
+
+        // Change environment back
+        environment = superEnvironment;
         return null;
     }
 
@@ -202,5 +217,4 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         else return stringValue;
 
     }
-
 }
