@@ -45,7 +45,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Object visitVarDecStatement(VarDecStatement stmt) {
         Object value = null;
         if (stmt.initializer != null) value = evaluate(stmt.initializer);
-        environment.add(stmt.name.lexeme, value);
+        environment.define(stmt.name.lexeme, value);
         return null;
     }
 
@@ -54,6 +54,13 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     @Override
     public Object visitVariableExpression(VariableExpression expr) {
         return environment.get(expr.name);
+    }
+
+    @Override
+    public Object visitAssignmentExpression(AssignmentExpression expr){
+        Object value = evaluate(expr.value);
+        environment.assign(expr.name, value);
+        return value;
     }
 
     @Override
