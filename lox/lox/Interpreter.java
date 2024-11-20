@@ -1,27 +1,82 @@
 package lox.lox;
 
-import static lox.scanner.TokenType.STRING;
+import java.util.ArrayList;
 
 import lox.error.Error;
+import lox.error.RuntimeError;
+
 import lox.scanner.Token;
 
-public class Interpreter implements Visitor<Object>{
+public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<Object>{
    
-    private Expression expression;
+    private final ArrayList<Statement> statements;
+    private Environment environment;
 
-    public Interpreter(Expression expression){
-        this.expression = expression;
+    public Interpreter(ArrayList<Statement> stmnts, Environment env){
+        statements = stmnts;
+        environment = env;
     }
 
     protected void interpret(){
         try{
-            Object value = expression.accept(this);
-            System.out.println(stringify(value));
-        } catch (RuntimeError e){
+            for (Statement stmt : statements){
+                evaluate(stmt);
+            }
+        } catch (RuntimeError error){
         }
     }
 
-    // VISITOR PATTERN visit methods
+    // VISITOR PATTERN visit methods for statement
+
+    @Override
+	public Object visitExpressionStatement(ExpressionStatement stmt){
+        evaluate(stmt.expression);
+        return null;
+    }
+
+    @Override
+	public Object visitPrintStatement(PrintStatement stmt){
+        Object value = evaluate(stmt.expression);
+        System.out.println(stringify(value));
+        return null;
+    }
+
+    @Override
+    public Object visitVarDecStatement(VarDecStatement stmt) {
+        Object value = null;
+        if (stmt.initializer != null) value = evaluate(stmt.initializer);
+        environment.define(stmt.name.lexeme, value);
+        return null;
+    }
+
+    @Override
+    public Object visitBlockStatement(BlockStatement stmt) {
+        // Setup new environment
+        Environment superEnvironment = environment;
+        environment = new Environment(environment);
+
+        for (Statement statement : stmt.statements){
+            evaluate(statement);
+        }
+
+        // Change environment back
+        environment = superEnvironment;
+        return null;
+    }
+
+    // VISITOR PATTERN visit methods for expression
+
+    @Override
+    public Object visitVariableExpression(VariableExpression expr) {
+        return environment.get(expr.name);
+    }
+
+    @Override
+    public Object visitAssignmentExpression(AssignmentExpression expr){
+        Object value = evaluate(expr.value);
+        environment.assign(expr.name, value);
+        return value;
+    }
 
     @Override
     public Object visitBinaryExpression(BinaryExpression expr) {
@@ -37,7 +92,6 @@ public class Interpreter implements Visitor<Object>{
                 }
 
                 RuntimeError err = new RuntimeError(expr.operator, "Both numbers or both strings expected");
-                Error.reportOperandError(err.token, err.message);
                 throw err;
 
             case SUBTRACT:
@@ -105,6 +159,10 @@ public class Interpreter implements Visitor<Object>{
 
     // HELPER METHODS 
 
+    private Object evaluate(Statement stmt){
+        return stmt.accept(this);
+    }
+
     private Object evaluate(Expression expr){
         return expr.accept(this);
     }
@@ -129,20 +187,20 @@ public class Interpreter implements Visitor<Object>{
 
     private void checkIfOperandIsANumber(Token token, Object value){
         if (value instanceof Double) return;
-        throw creaRuntimeError(token, "Number Literal expected");
+        throw createRuntimeError(token, "Number Literal expected");
     }
 
     private void checkIfOperandsAreNumbers(Token token, Object a, Object b){
         if (a instanceof Double && b instanceof Double) return;
-        throw creaRuntimeError(token, "Numbers expected as operands");
+        throw createRuntimeError(token, "Numbers expected as operands");
     }
 
     private void checkIfRightValueZero(Token token, Object rightValue){
         if ((double) rightValue != (double) 0) return;
-        throw creaRuntimeError(token, "Second operand cannot be Zero");
+        throw createRuntimeError(token, "Second operand cannot be Zero");
     }
 
-    private RuntimeError creaRuntimeError(Token token, String message){
+    private RuntimeError createRuntimeError(Token token, String message){
         RuntimeError err = new RuntimeError(token, message);
         Error.reportOperandError(err.token, err.message);
         return err;
@@ -158,16 +216,5 @@ public class Interpreter implements Visitor<Object>{
         if (stringValue.endsWith(".0")) return stringValue.substring(0, stringValue.length()-2);
         else return stringValue;
 
-    }
-}
-
-class RuntimeError extends RuntimeException{
-
-    Token token;
-    String message;
-
-    RuntimeError(Token token, String message){
-        this.token = token;
-        this.message = message;
     }
 }

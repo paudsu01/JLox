@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Scanner;
+import java.util.ArrayList;
 
 import lox.error.Error;
 import lox.scanner.*;
@@ -25,7 +26,7 @@ public class Lox{
 
     private static void runFile(String filePath) throws IOException{
         String entire_file = new String(Files.readAllBytes(Paths.get(filePath)));
-        run(entire_file);
+        run(entire_file, new Environment());
     }
 
     private static void runPrompt(){
@@ -33,27 +34,30 @@ public class Lox{
         String user_input;
 
         System.out.println("Jlox Interpreter v0.1. Type 'exit' to exit the interpreter.");
+        Environment env = new Environment();
+
         while (true){
             System.out.print(">> ");
             user_input = scanner.nextLine();
             if (user_input.equals("exit")) break;
 
-            run(user_input);
+            run(user_input, env);
             Error.hadError = false;  
             Error.hadRuntimeError = false;  
         }
+
         scanner.close();
     }
 
-    private static void run(String input){
+    private static void run(String input, Environment env){
         LoxScanner scanner = new LoxScanner(input);
         if (Error.hadError) return;
 
         Parser parser = new Parser(scanner.scanTokens());
-        Expression expr = parser.createParseTree();
+        ArrayList<Statement> statements = parser.parse();
         if (Error.hadError) return;
 
-        Interpreter interpreter = new Interpreter(expr);
+        Interpreter interpreter = new Interpreter(statements, env);
         interpreter.interpret();
 
         return;

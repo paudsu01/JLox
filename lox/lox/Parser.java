@@ -1,11 +1,12 @@
 package lox.lox;
 
 import lox.error.Error;
+import lox.error.ParserError;
+
 import lox.scanner.Token;
 import lox.scanner.TokenType;
 
-import static lox.scanner.TokenType.NUMBER;
-import static lox.scanner.TokenType.STRING;
+import static lox.scanner.TokenType.*;
 
 import java.util.ArrayList;;
 
@@ -18,19 +19,111 @@ public class Parser {
         this.tokens = tokens;
     }
 
-    public Expression createParseTree(){
-        try {
-           return parseExpression(); 
-        } catch (ParserError e) {
-            return null;
+    public ArrayList<Statement> parse(){
+
+        ArrayList<Statement> statements = new ArrayList<>();
+        while (!noMoreTokensToConsume()){
+            if (getCurrentToken().type == TokenType.EOF) break;
+                statements.add(parseDeclaration());
         }
+        return statements;
+
     }
 
     // Methods for grammar definitions
 
-    // expression -> equality
+    // declaration -> varDec | statement
+    private Statement parseDeclaration(){
+       try{
+            if (matchCurrentToken(TokenType.VAR)) return parseVarDeclaration();
+            else return parseStatement(); 
+       } catch (ParserError err){
+            synchronize();
+            return null;
+       }
+    }
+
+    // varDec -> "var" IDENTIFIER ("=" expression)? ";"
+    private Statement parseVarDeclaration() {
+
+       consumeToken(TokenType.VAR);
+       if (! matchCurrentToken(TokenType.IDENTIFIER)) consumeToken(TokenType.IDENTIFIER);
+
+       VariableExpression varName = (VariableExpression) parsePrimary();
+
+       Expression initializer = null;
+       if (matchCurrentToken(TokenType.ASSIGNMENT)) {
+            consumeToken(TokenType.ASSIGNMENT);
+            initializer = parseExpression();
+       }
+
+       consumeToken(TokenType.SEMICOLON);
+       return new VarDecStatement(varName.name, initializer);
+
+    }
+
+
+    // statement -> expresssionStatment | printStatement
+    private Statement parseStatement(){
+
+        if (matchCurrentToken(TokenType.PRINT)) return parsePrintStatement();
+        else if (matchCurrentToken(TokenType.LEFT_BRACE)) return parseBlockStatement();
+        
+        return parseExpressionStatement();
+    }
+
+    // printStatement -> "print" expression ";"
+    private Statement parseBlockStatement(){
+        consumeToken(TokenType.LEFT_BRACE);
+        ArrayList<Statement> statements = new ArrayList<>();
+
+        while (!matchCurrentToken(TokenType.RIGHT_BRACE) && !noMoreTokensToConsume()){
+            statements.add(parseDeclaration());
+        }
+
+        consumeToken(TokenType.RIGHT_BRACE);
+        return new BlockStatement(statements); 
+    }
+
+    // printStatement -> "print" expression ";"
+    private Statement parsePrintStatement(){
+
+        consumeToken(TokenType.PRINT);
+        Expression expr = parseExpression();
+        consumeToken(TokenType.SEMICOLON);
+
+        return new PrintStatement(expr);
+    }
+
+    // expressionStatement -> expression ";"
+    private Statement parseExpressionStatement(){
+
+        Expression expr = parseExpression();
+        consumeToken(TokenType.SEMICOLON);
+        return new ExpressionStatement(expr);
+    }
+
+    // expression -> assignment
     private Expression parseExpression(){
-        return parseEquality();
+        return parseAssignment();
+    }
+
+    // assignment -> equality | IDENTIFIER "=" assignment
+    private Expression parseAssignment(){
+
+        Expression expr = parseEquality();
+
+        if (expr instanceof VariableExpression && matchCurrentToken(TokenType.ASSIGNMENT)){
+            consumeToken(TokenType.ASSIGNMENT);
+            Expression expr2 = parseAssignment();
+            return new AssignmentExpression(((VariableExpression) expr).name, expr2);
+
+        } else if (matchCurrentToken(TokenType.ASSIGNMENT)){
+            // error since invalid assignment target
+            reportParserError(getCurrentToken(), "Invalid assignment target");
+            
+        }
+        return expr;
     }
 
     // equality -> comparison ( ( "!=" | "==" ) comparison )*
@@ -125,11 +218,13 @@ public class Parser {
             default:
                 if (currentToken.type == NUMBER || currentToken.type == STRING){
                     return new LiteralExpression(currentToken.value);
+                } else if (currentToken.type == IDENTIFIER){
+                    return new VariableExpression(currentToken);
                 } else {
-                    reportParserError(currentToken, "Expected STRING or NUMBER");
-                    return new LiteralExpression(null);
+                    reportParserError(currentToken, "Expected STRING or NUMBER or IDENTIFIER");
                 }
         }
+        return null;
     }
 
     // Helper methods

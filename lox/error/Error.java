@@ -1,7 +1,6 @@
 package lox.error;
 
 import lox.scanner.Token;
-import lox.lox.ParserError;
 
 public class Error{
 	
@@ -9,12 +8,17 @@ public class Error{
 	public static boolean hadRuntimeError = false;
 
 	public static void reportParserError(ParserError err){
-		hadRuntimeError = true;
 		reportError(err.token.line, String.format("Got %s, %s", err.token.type, err.message));
 	}
 
 	public static void reportOperandError(Token token, String message){
+		hadRuntimeError = true;
 		reportError(token.line, String.format("%s with %s operator", message, token.lexeme));
+	}
+
+	public static void reportRuntimeError(RuntimeError err){
+		hadRuntimeError = true;
+		reportError(err.token.line, err.message);
 	}
 
 	public static void reportScannerError(int line, String message){
