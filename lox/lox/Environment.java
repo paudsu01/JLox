@@ -40,8 +40,8 @@ public class Environment {
 
         if (environment.containsKey(name.lexeme)) environment.put(name.lexeme, newValue);
         else if (superEnvironment != null) superEnvironment.assign(name, newValue);
+        else reportAndThrowUndefinedVariableError(name);
         
-        reportAndThrowUndefinedVariableError(name);
     }
 
     // Error report methods
