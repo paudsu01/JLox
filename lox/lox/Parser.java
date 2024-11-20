@@ -65,8 +65,24 @@ public class Parser {
 
     // statement -> expresssionStatment | printStatement
     private Statement parseStatement(){
+
         if (matchCurrentToken(TokenType.PRINT)) return parsePrintStatement();
-        else return parseExpressionStatement();
+        else if (matchCurrentToken(TokenType.LEFT_BRACE)) return parseBlockStatement();
+        
+        return parseExpressionStatement();
+    }
+
+    // printStatement -> "print" expression ";"
+    private Statement parseBlockStatement(){
+        consumeToken(TokenType.LEFT_BRACE);
+        ArrayList<Statement> statements = new ArrayList<>();
+
+        while (!matchCurrentToken(TokenType.RIGHT_BRACE) && !noMoreTokensToConsume()){
+            statements.add(parseDeclaration());
+        }
+
+        consumeToken(TokenType.RIGHT_BRACE);
+        return new BlockStatement(statements); 
     }
 
     // printStatement -> "print" expression ";"
