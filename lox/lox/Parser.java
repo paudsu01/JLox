@@ -5,9 +5,6 @@ import lox.error.ParserError;
 
 import lox.scanner.Token;
 import lox.scanner.TokenType;
-
-import static lox.scanner.TokenType.*;
-
 import java.util.ArrayList;;
 
 public class Parser {
@@ -76,15 +73,15 @@ public class Parser {
     // ifElseStatement -> "if" "(" expression ")" statement ("else" statement)?
     private Statement parseIfElseStatement(){
 
-        consumeToken(IF);
-        consumeToken(LEFT_PAREN);
+        consumeToken(TokenType.IF);
+        consumeToken(TokenType.LEFT_PAREN);
         Expression expression = parseExpression();
-        consumeToken(RIGHT_PAREN);
+        consumeToken(TokenType.RIGHT_PAREN);
 
         Statement ifStatement = parseStatement();
         Statement elseStatement = null;
-        if (matchCurrentToken(ELSE)){
-            consumeToken(ELSE);
+        if (matchCurrentToken(TokenType.ELSE)){
+            consumeToken(TokenType.ELSE);
             elseStatement = parseStatement();
         }
 
@@ -127,10 +124,10 @@ public class Parser {
         return parseAssignment();
     }
 
-    // assignment -> equality | IDENTIFIER "=" assignment
+    // assignment -> or | IDENTIFIER "=" assignment
     private Expression parseAssignment(){
 
-        Expression expr = parseEquality();
+        Expression expr = parseOr();
 
         if (expr instanceof VariableExpression && matchCurrentToken(TokenType.ASSIGNMENT)){
             consumeToken(TokenType.ASSIGNMENT);
@@ -142,6 +139,36 @@ public class Parser {
             reportParserError(getCurrentToken(), "Invalid assignment target");
             
         }
+        return expr;
+    }
+
+    // or -> and ("or" and)*
+    private Expression parseOr(){
+        Expression expr = parseAnd();
+        
+        while (matchCurrentToken(TokenType.OR)) {
+            Token operator = getCurrentToken();
+            consumeToken(TokenType.OR);
+
+            Expression expr2 = parseAnd();
+            expr = new LogicalExpression(expr, operator, expr2);
+        }
+
+        return expr;
+    }
+
+    // and -> equality ("and" equality)*
+    private Expression parseAnd(){
+        Expression expr = parseEquality();
+
+        while (matchCurrentToken(TokenType.AND)){
+            Token operator = getCurrentToken();
+            consumeToken(TokenType.AND);
+
+            Expression expr2 = parseEquality();
+            expr = new LogicalExpression(expr, operator, expr2);
+        }
+
         return expr;
     }
 
@@ -235,9 +262,9 @@ public class Parser {
                 consumeToken(TokenType.RIGHT_PAREN);
                 return new GroupingExpression(expr);
             default:
-                if (currentToken.type == NUMBER || currentToken.type == STRING){
+                if (currentToken.type == TokenType.NUMBER || currentToken.type == TokenType.STRING){
                     return new LiteralExpression(currentToken.value);
-                } else if (currentToken.type == IDENTIFIER){
+                } else if (currentToken.type == TokenType.IDENTIFIER){
                     return new VariableExpression(currentToken);
                 } else {
                     reportParserError(currentToken, "Expected STRING or NUMBER or IDENTIFIER");
