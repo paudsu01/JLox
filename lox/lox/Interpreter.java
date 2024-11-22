@@ -6,6 +6,7 @@ import lox.error.Error;
 import lox.error.RuntimeError;
 
 import lox.scanner.Token;
+import lox.scanner.TokenType;
 
 public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<Object>{
    
@@ -38,6 +39,22 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 	public Object visitPrintStatement(PrintStatement stmt){
         Object value = evaluate(stmt.expression);
         System.out.println(stringify(value));
+        return null;
+    }
+
+    @Override
+    public Object visitWhileStatement(WhileStatement stmt) {
+        while(truthOrFalse(evaluate(stmt.expr))){
+            evaluate(stmt.statement);
+        }
+        return null;
+    }
+
+    @Override
+    public Object visitIfElseStatement(IfElseStatement stmt) {
+        if (truthOrFalse(evaluate(stmt.expr))) evaluate(stmt.ifStatement);
+        else if (stmt.elseStatement != null) evaluate(stmt.elseStatement);
+
         return null;
     }
 
@@ -76,6 +93,26 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         Object value = evaluate(expr.value);
         environment.assign(expr.name, value);
         return value;
+    }
+
+    @Override
+    public Object visitLogicalExpression(LogicalExpression expr){
+        Token token = expr.operator;
+        Object leftValue = evaluate(expr.left);
+        switch (token.lexeme) {
+            case "and":
+                if (truthOrFalse(leftValue)) return evaluate(expr.right);
+                return leftValue;
+
+            case "or":
+                if (truthOrFalse(leftValue)) return leftValue;
+                return evaluate(expr.right);
+
+        // Unreachable
+            default:
+                break;
+        }
+        return null;
     }
 
     @Override

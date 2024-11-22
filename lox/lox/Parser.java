@@ -6,9 +6,7 @@ import lox.error.ParserError;
 import lox.scanner.Token;
 import lox.scanner.TokenType;
 
-import static lox.scanner.TokenType.*;
-
-import java.util.ArrayList;;
+import java.util.ArrayList;
 
 public class Parser {
     
@@ -63,13 +61,91 @@ public class Parser {
     }
 
 
-    // statement -> expresssionStatment | printStatement
+    // statement -> expresssionStatment | printStatement | blockStatement | ifElseStatement | whileStatement
     private Statement parseStatement(){
 
         if (matchCurrentToken(TokenType.PRINT)) return parsePrintStatement();
         else if (matchCurrentToken(TokenType.LEFT_BRACE)) return parseBlockStatement();
+        else if (matchCurrentToken(TokenType.IF)) return parseIfElseStatement();
+        else if (matchCurrentToken(TokenType.WHILE)) return parseWhileStatement();
+        else if (matchCurrentToken(TokenType.FOR)) return parseForStatement();
         
         return parseExpressionStatement();
+    }
+    
+    // for -> "for" "(" (varDeclaration | expressionStatement | ";") expression? ";" expression? ")" statement
+    // Desugaring approach 
+    // Desugaring `for` into `while` statement
+    private Statement parseForStatement(){
+        consumeToken(TokenType.FOR);
+        consumeToken(TokenType.LEFT_PAREN);
+
+        Statement initializer = null;
+        if (matchCurrentToken(TokenType.VAR)) initializer = parseVarDeclaration();
+        else if (matchCurrentToken(TokenType.SEMICOLON)) consumeToken(TokenType.SEMICOLON);
+        else initializer = parseExpressionStatement();
+
+        Expression condition = null;
+        if (!matchCurrentToken(TokenType.SEMICOLON)) condition = parseExpression();
+        consumeToken(TokenType.SEMICOLON);
+
+        Expression increment = null;
+        if (!matchCurrentToken(TokenType.RIGHT_PAREN)) increment = parseExpression();
+
+        consumeToken(TokenType.RIGHT_PAREN);
+        Statement statementBody = parseStatement();
+        
+        ArrayList<Statement> newStatements = new ArrayList<>();
+        if (increment != null){
+            newStatements.add(statementBody);
+            newStatements.add(new ExpressionStatement(increment));
+            statementBody = new BlockStatement(newStatements);
+        }
+
+        if (condition == null) condition = new LiteralExpression(true);
+        Statement whileStatement = new WhileStatement(condition, statementBody);
+
+        if (initializer != null){
+
+            ArrayList<Statement> initAndWhile = new ArrayList<>();
+            initAndWhile.add(initializer);
+            initAndWhile.add(whileStatement);
+
+            whileStatement = new BlockStatement(initAndWhile);
+        }
+        return whileStatement;
+    }
+
+    // whileStatement -> "while" "(" expression ")" statement
+    private Statement parseWhileStatement(){
+        
+        consumeToken(TokenType.WHILE);
+
+        consumeToken(TokenType.LEFT_PAREN);
+        Expression condition = parseExpression();
+        consumeToken(TokenType.RIGHT_PAREN);
+
+        Statement statementBody = parseStatement();
+
+        return new WhileStatement(condition, statementBody);
+    }
+
+    // ifElseStatement -> "if" "(" expression ")" statement ("else" statement)?
+    private Statement parseIfElseStatement(){
+
+        consumeToken(TokenType.IF);
+        consumeToken(TokenType.LEFT_PAREN);
+        Expression expression = parseExpression();
+        consumeToken(TokenType.RIGHT_PAREN);
+
+        Statement ifStatement = parseStatement();
+        Statement elseStatement = null;
+        if (matchCurrentToken(TokenType.ELSE)){
+            consumeToken(TokenType.ELSE);
+            elseStatement = parseStatement();
+        }
+
+        return new IfElseStatement(expression, ifStatement, elseStatement);
     }
 
     // printStatement -> "print" expression ";"
@@ -108,10 +184,10 @@ public class Parser {
         return parseAssignment();
     }
 
-    // assignment -> equality | IDENTIFIER "=" assignment
+    // assignment -> or | IDENTIFIER "=" assignment
     private Expression parseAssignment(){
 
-        Expression expr = parseEquality();
+        Expression expr = parseOr();
 
         if (expr instanceof VariableExpression && matchCurrentToken(TokenType.ASSIGNMENT)){
             consumeToken(TokenType.ASSIGNMENT);
@@ -123,6 +199,36 @@ public class Parser {
             reportParserError(getCurrentToken(), "Invalid assignment target");
             
         }
+        return expr;
+    }
+
+    // or -> and ("or" and)*
+    private Expression parseOr(){
+        Expression expr = parseAnd();
+        
+        while (matchCurrentToken(TokenType.OR)) {
+            Token operator = getCurrentToken();
+            consumeToken(TokenType.OR);
+
+            Expression expr2 = parseAnd();
+            expr = new LogicalExpression(expr, operator, expr2);
+        }
+
+        return expr;
+    }
+
+    // and -> equality ("and" equality)*
+    private Expression parseAnd(){
+        Expression expr = parseEquality();
+
+        while (matchCurrentToken(TokenType.AND)){
+            Token operator = getCurrentToken();
+            consumeToken(TokenType.AND);
+
+            Expression expr2 = parseEquality();
+            expr = new LogicalExpression(expr, operator, expr2);
+        }
+
         return expr;
     }
 
@@ -216,9 +322,9 @@ public class Parser {
                 consumeToken(TokenType.RIGHT_PAREN);
                 return new GroupingExpression(expr);
             default:
-                if (currentToken.type == NUMBER || currentToken.type == STRING){
+                if (currentToken.type == TokenType.NUMBER || currentToken.type == TokenType.STRING){
                     return new LiteralExpression(currentToken.value);
-                } else if (currentToken.type == IDENTIFIER){
+                } else if (currentToken.type == TokenType.IDENTIFIER){
                     return new VariableExpression(currentToken);
                 } else {
                     reportParserError(currentToken, "Expected STRING or NUMBER or IDENTIFIER");

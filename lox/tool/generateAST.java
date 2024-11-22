@@ -13,7 +13,7 @@ public class generateAST{
         }
 
         // Define the classes and their fields for the output file for Expression.java
-        String [] exprClasses = {"Binary", "Unary", "Grouping", "Literal", "Variable", "Assignment"};
+        String [] exprClasses = {"Binary", "Unary", "Grouping", "Literal", "Variable", "Assignment", "Logical"};
         HashMap<String, String> exprClassesToFields = new HashMap<>();
         exprClassesToFields.put(exprClasses[0], "Expression left:Token operator:Expression right");
         exprClassesToFields.put(exprClasses[1], "Token operator:Expression expression");
@@ -21,15 +21,18 @@ public class generateAST{
         exprClassesToFields.put(exprClasses[3], "Object value");
         exprClassesToFields.put(exprClasses[4], "Token name");
         exprClassesToFields.put(exprClasses[5], "Token name:Expression value");
+        exprClassesToFields.put(exprClasses[6], "Expression left:Token operator:Expression right");
 
 
         // Define the classes and their fields for the output file for Statement.java
-        String [] stmtClasses = {"Expression", "Print", "VarDec", "Block"};
+        String [] stmtClasses = {"Expression", "Print", "VarDec", "Block", "IfElse", "While"};
         HashMap<String, String> stmtClassesToFields = new HashMap<>();
         stmtClassesToFields.put(stmtClasses[0], "Expression expression");
         stmtClassesToFields.put(stmtClasses[1], "Expression expression");
         stmtClassesToFields.put(stmtClasses[2], "Token name:Expression initializer");
         stmtClassesToFields.put(stmtClasses[3], "ArrayList<Statement> statements");
+        stmtClassesToFields.put(stmtClasses[4], "Expression expr:Statement ifStatement:Statement elseStatement");
+        stmtClassesToFields.put(stmtClasses[5], "Expression expr:Statement statement");
 
         // Generate files Expression.java and Statement.java
         String packageName = "lox.lox";

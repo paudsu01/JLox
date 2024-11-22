@@ -57,10 +57,42 @@ class BlockStatement extends Statement{
 	 return visit.visitBlockStatement(this);}
 }
 
+class IfElseStatement extends Statement{
+	final Expression expr;
+	final Statement ifStatement;
+	final Statement elseStatement;
+
+	IfElseStatement(Expression expr, Statement ifStatement, Statement elseStatement){
+		this.expr = expr;
+		this.ifStatement = ifStatement;
+		this.elseStatement = elseStatement;
+	}
+
+	@Override
+	<R> R accept(StatementVisitor<R> visit){
+	 return visit.visitIfElseStatement(this);}
+}
+
+class WhileStatement extends Statement{
+	final Expression expr;
+	final Statement statement;
+
+	WhileStatement(Expression expr, Statement statement){
+		this.expr = expr;
+		this.statement = statement;
+	}
+
+	@Override
+	<R> R accept(StatementVisitor<R> visit){
+	 return visit.visitWhileStatement(this);}
+}
+
 
 interface StatementVisitor<R>{
 	R visitExpressionStatement(ExpressionStatement stmt);
 	R visitPrintStatement(PrintStatement stmt);
 	R visitVarDecStatement(VarDecStatement stmt);
 	R visitBlockStatement(BlockStatement stmt);
+	R visitIfElseStatement(IfElseStatement stmt);
+	R visitWhileStatement(WhileStatement stmt);
 }

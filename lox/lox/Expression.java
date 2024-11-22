@@ -86,6 +86,22 @@ class AssignmentExpression extends Expression{
 	 return visit.visitAssignmentExpression(this);}
 }
 
+class LogicalExpression extends Expression{
+	final Expression left;
+	final Token operator;
+	final Expression right;
+
+	LogicalExpression(Expression left, Token operator, Expression right){
+		this.left = left;
+		this.operator = operator;
+		this.right = right;
+	}
+
+	@Override
+	<R> R accept(ExpressionVisitor<R> visit){
+	 return visit.visitLogicalExpression(this);}
+}
+
 
 interface ExpressionVisitor<R>{
 	R visitBinaryExpression(BinaryExpression expr);
@@ -94,4 +110,5 @@ interface ExpressionVisitor<R>{
 	R visitLiteralExpression(LiteralExpression expr);
 	R visitVariableExpression(VariableExpression expr);
 	R visitAssignmentExpression(AssignmentExpression expr);
+	R visitLogicalExpression(LogicalExpression expr);
 }
