@@ -37,8 +37,10 @@ public class Parser {
             else return parseStatement(); 
        } catch (ParserError err){
             synchronize();
-            return null;
+       } catch (IndexOutOfBoundsException err){
+            synchronize();
        }
+        return null;
     }
 
     // varDec -> "var" IDENTIFIER ("=" expression)? ";"
@@ -376,6 +378,8 @@ public class Parser {
 
     // consumes token until we get to a state we can start parsing from again
     private void synchronize(){
+        if (noMoreTokensToConsume()) return;
+
         // consume the token that led to error
         consumeToken();
 
