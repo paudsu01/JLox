@@ -60,14 +60,29 @@ public class Parser {
     }
 
 
-    // statement -> expresssionStatment | printStatement | blockStatement | ifElseStatement
+    // statement -> expresssionStatment | printStatement | blockStatement | ifElseStatement | whileStatement
     private Statement parseStatement(){
 
         if (matchCurrentToken(TokenType.PRINT)) return parsePrintStatement();
         else if (matchCurrentToken(TokenType.LEFT_BRACE)) return parseBlockStatement();
         else if (matchCurrentToken(TokenType.IF)) return parseIfElseStatement();
+        else if (matchCurrentToken(TokenType.WHILE)) return parseWhileStatement();
         
         return parseExpressionStatement();
+    }
+
+    // whileStatement -> "while" "(" expression ")" statement
+    private Statement parseWhileStatement(){
+        
+        consumeToken(TokenType.WHILE);
+
+        consumeToken(TokenType.LEFT_PAREN);
+        Expression condition = parseExpression();
+        consumeToken(TokenType.RIGHT_PAREN);
+
+        Statement statementBody = parseStatement();
+
+        return new WhileStatement(condition, statementBody);
     }
 
     // ifElseStatement -> "if" "(" expression ")" statement ("else" statement)?

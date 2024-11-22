@@ -25,13 +25,14 @@ public class generateAST{
 
 
         // Define the classes and their fields for the output file for Statement.java
-        String [] stmtClasses = {"Expression", "Print", "VarDec", "Block", "IfElse"};
+        String [] stmtClasses = {"Expression", "Print", "VarDec", "Block", "IfElse", "While"};
         HashMap<String, String> stmtClassesToFields = new HashMap<>();
         stmtClassesToFields.put(stmtClasses[0], "Expression expression");
         stmtClassesToFields.put(stmtClasses[1], "Expression expression");
         stmtClassesToFields.put(stmtClasses[2], "Token name:Expression initializer");
         stmtClassesToFields.put(stmtClasses[3], "ArrayList<Statement> statements");
         stmtClassesToFields.put(stmtClasses[4], "Expression expr:Statement ifStatement:Statement elseStatement");
+        stmtClassesToFields.put(stmtClasses[5], "Expression expr:Statement statement");
 
         // Generate files Expression.java and Statement.java
         String packageName = "lox.lox";

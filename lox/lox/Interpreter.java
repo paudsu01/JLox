@@ -43,6 +43,14 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     @Override
+    public Object visitWhileStatement(WhileStatement stmt) {
+        while(truthOrFalse(evaluate(stmt.expr))){
+            evaluate(stmt.statement);
+        }
+        return null;
+    }
+
+    @Override
     public Object visitIfElseStatement(IfElseStatement stmt) {
         if (truthOrFalse(evaluate(stmt.expr))) evaluate(stmt.ifStatement);
         else if (stmt.elseStatement != null) evaluate(stmt.elseStatement);
