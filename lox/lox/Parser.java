@@ -5,7 +5,8 @@ import lox.error.ParserError;
 
 import lox.scanner.Token;
 import lox.scanner.TokenType;
-import java.util.ArrayList;;
+
+import java.util.ArrayList;
 
 public class Parser {
     
@@ -67,8 +68,52 @@ public class Parser {
         else if (matchCurrentToken(TokenType.LEFT_BRACE)) return parseBlockStatement();
         else if (matchCurrentToken(TokenType.IF)) return parseIfElseStatement();
         else if (matchCurrentToken(TokenType.WHILE)) return parseWhileStatement();
+        else if (matchCurrentToken(TokenType.FOR)) return parseForStatement();
         
         return parseExpressionStatement();
+    }
+    
+    // for -> "for" "(" (varDeclaration | expressionStatement | ";") expression? ";" expression? ")" statement
+    // Desugaring approach 
+    // Desugaring `for` into `while` statement
+    private Statement parseForStatement(){
+        consumeToken(TokenType.FOR);
+        consumeToken(TokenType.LEFT_PAREN);
+
+        Statement initializer = null;
+        if (matchCurrentToken(TokenType.VAR)) initializer = parseVarDeclaration();
+        else if (matchCurrentToken(TokenType.SEMICOLON)) consumeToken(TokenType.SEMICOLON);
+        else initializer = parseExpressionStatement();
+
+        Expression condition = null;
+        if (!matchCurrentToken(TokenType.SEMICOLON)) condition = parseExpression();
+        consumeToken(TokenType.SEMICOLON);
+
+        Expression increment = null;
+        if (!matchCurrentToken(TokenType.RIGHT_PAREN)) increment = parseExpression();
+
+        consumeToken(TokenType.RIGHT_PAREN);
+        Statement statementBody = parseStatement();
+        
+        ArrayList<Statement> newStatements = new ArrayList<>();
+        if (increment != null){
+            newStatements.add(statementBody);
+            newStatements.add(new ExpressionStatement(increment));
+            statementBody = new BlockStatement(newStatements);
+        }
+
+        if (condition == null) condition = new LiteralExpression(true);
+        Statement whileStatement = new WhileStatement(condition, statementBody);
+
+        if (initializer != null){
+
+            ArrayList<Statement> initAndWhile = new ArrayList<>();
+            initAndWhile.add(initializer);
+            initAndWhile.add(whileStatement);
+
+            whileStatement = new BlockStatement(initAndWhile);
+        }
+        return whileStatement;
     }
 
     // whileStatement -> "while" "(" expression ")" statement
