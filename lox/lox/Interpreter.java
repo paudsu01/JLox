@@ -42,6 +42,14 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     @Override
+    public Object visitIfElseStatement(IfElseStatement stmt) {
+        if (truthOrFalse(evaluate(stmt.expr))) evaluate(stmt.ifStatement);
+        else if (stmt.elseStatement != null) evaluate(stmt.elseStatement);
+
+        return null;
+    }
+
+    @Override
     public Object visitVarDecStatement(VarDecStatement stmt) {
         Object value = null;
         if (stmt.initializer != null) value = evaluate(stmt.initializer);

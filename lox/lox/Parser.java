@@ -63,13 +63,32 @@ public class Parser {
     }
 
 
-    // statement -> expresssionStatment | printStatement
+    // statement -> expresssionStatment | printStatement | blockStatement | ifElseStatement
     private Statement parseStatement(){
 
         if (matchCurrentToken(TokenType.PRINT)) return parsePrintStatement();
         else if (matchCurrentToken(TokenType.LEFT_BRACE)) return parseBlockStatement();
+        else if (matchCurrentToken(TokenType.IF)) return parseIfElseStatement();
         
         return parseExpressionStatement();
+    }
+
+    // ifElseStatement -> "if" "(" expression ")" statement ("else" statement)?
+    private Statement parseIfElseStatement(){
+
+        consumeToken(IF);
+        consumeToken(LEFT_PAREN);
+        Expression expression = parseExpression();
+        consumeToken(RIGHT_PAREN);
+
+        Statement ifStatement = parseStatement();
+        Statement elseStatement = null;
+        if (matchCurrentToken(ELSE)){
+            consumeToken(ELSE);
+            elseStatement = parseStatement();
+        }
+
+        return new IfElseStatement(expression, ifStatement, elseStatement);
     }
 
     // printStatement -> "print" expression ";"
