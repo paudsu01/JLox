@@ -190,6 +190,11 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     @Override
+    public Object visitCallExpression(CallExpression expr) {
+        return null;
+    }
+
+    @Override
     public Object visitLiteralExpression(LiteralExpression expr) {
         return expr.value;
     }
