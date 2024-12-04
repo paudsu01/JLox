@@ -190,6 +190,24 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     @Override
+    public Object visitCallExpression(CallExpression expr) {
+        ArrayList<Object> arguments = new ArrayList<>();
+        for (Expression argument: expr.arguments){
+            arguments.add(evaluate(argument));
+        }
+
+        Object callee = evaluate(expr.callee);
+        if (!(callee instanceof LoxCallable)) createRuntimeError(expr.closingParen, "Object is not callable");
+
+        LoxCallable function = (LoxCallable) callee;
+
+        if (function.arity() != arguments.size())
+            createRuntimeError(expr.closingParen, String.format("Expected %d argument(s), but got %d of them", function.arity(), arguments.size()));
+
+        return function.call(this, arguments);
+    }
+
+    @Override
     public Object visitLiteralExpression(LiteralExpression expr) {
         return expr.value;
     }
@@ -224,22 +242,28 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     private void checkIfOperandIsANumber(Token token, Object value){
         if (value instanceof Double) return;
-        throw createRuntimeError(token, "Number Literal expected");
+        throw createOperandError(token, "Number Literal expected");
     }
 
     private void checkIfOperandsAreNumbers(Token token, Object a, Object b){
         if (a instanceof Double && b instanceof Double) return;
-        throw createRuntimeError(token, "Numbers expected as operands");
+        throw createOperandError(token, "Numbers expected as operands");
     }
 
     private void checkIfRightValueZero(Token token, Object rightValue){
         if ((double) rightValue != (double) 0) return;
-        throw createRuntimeError(token, "Second operand cannot be Zero");
+        throw createOperandError(token, "Second operand cannot be Zero");
+    }
+
+    private RuntimeError createOperandError(Token token, String message){
+        RuntimeError err = new RuntimeError(token, message);
+        Error.reportOperandError(err.token, err.message);
+        return err;
     }
 
     private RuntimeError createRuntimeError(Token token, String message){
         RuntimeError err = new RuntimeError(token, message);
-        Error.reportOperandError(err.token, err.message);
+        Error.reportRuntimeError(err);
         return err;
     }
 

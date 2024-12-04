@@ -13,7 +13,7 @@ public class generateAST{
         }
 
         // Define the classes and their fields for the output file for Expression.java
-        String [] exprClasses = {"Binary", "Unary", "Grouping", "Literal", "Variable", "Assignment", "Logical"};
+        String [] exprClasses = {"Binary", "Unary", "Grouping", "Literal", "Variable", "Assignment", "Logical", "Call"};
         HashMap<String, String> exprClassesToFields = new HashMap<>();
         exprClassesToFields.put(exprClasses[0], "Expression left:Token operator:Expression right");
         exprClassesToFields.put(exprClasses[1], "Token operator:Expression expression");
@@ -22,6 +22,7 @@ public class generateAST{
         exprClassesToFields.put(exprClasses[4], "Token name");
         exprClassesToFields.put(exprClasses[5], "Token name:Expression value");
         exprClassesToFields.put(exprClasses[6], "Expression left:Token operator:Expression right");
+        exprClassesToFields.put(exprClasses[7], "Expression callee:Token closingParen:ArrayList<Expression> arguments");
 
 
         // Define the classes and their fields for the output file for Statement.java
@@ -47,7 +48,7 @@ public class generateAST{
 
         writer.printf("package %s;\n\n", packageName);
         writer.println("import lox.scanner.Token;");
-        if (fileName.equals("Statement")) writer.println("import java.util.ArrayList;");
+        writer.println("import java.util.ArrayList;");
 
         writer.printf("\nabstract class %s {\n", fileName);
         writer.printf("\tabstract <R> R accept(%sVisitor<R> visitor);\n", fileName);

@@ -294,7 +294,7 @@ public class Parser {
         return expression;
     }
 
-     // unary -> ( "!" | "-" ) unary | primary
+     // unary -> ( "!" | "-" ) unary | call
     private Expression parseUnary(){
         if (matchCurrentToken(TokenType.SUBTRACT, TokenType.NOT)){
             // consume matched token
@@ -303,8 +303,36 @@ public class Parser {
             return new UnaryExpression(token, parseUnary());
 
         } else {
-            return parsePrimary();
+            return parseCall();
         }
+    }
+
+    // call -> primary ( "(" arguments ? ")" )* ;
+    private Expression parseCall(){
+        Expression expression = parsePrimary();
+
+        while (matchCurrentToken(TokenType.LEFT_PAREN)){
+            consumeToken(TokenType.LEFT_PAREN);
+
+            ArrayList<Expression> arguments;
+            if (!matchCurrentToken(TokenType.RIGHT_PAREN)) arguments = parseArguments();
+            else arguments = new ArrayList<>();
+
+            expression = new CallExpression(expression, getCurrentToken(), arguments);
+            consumeToken(TokenType.RIGHT_PAREN);
+        }
+        return expression;
+    }
+
+    private ArrayList<Expression> parseArguments(){
+        ArrayList<Expression> arguments = new ArrayList<>();
+        do {
+            arguments.add(parseExpression());
+            if (arguments.size() >= 255) reportMaxArgumentsError(getCurrentToken());
+
+        } while (matchCurrentToken(TokenType.COMMA));
+
+        return arguments;
     }
 
     // primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
@@ -373,6 +401,13 @@ public class Parser {
     private void reportParserError(Token token, String message){
         ParserError err = new ParserError(token, message);
         Error.reportParserError(err);
+        throw err;
+    }
+
+    private void reportMaxArgumentsError(Token token){
+        String message = "Cannot have more than 255 arguments";
+        ParserError err = new ParserError(token,message);
+        Error.reportError(token.line, message);
         throw err;
     }
 
