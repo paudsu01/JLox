@@ -6,8 +6,12 @@ import lox.error.Return;
 class LoxFunction implements LoxCallable{
 
     private final FunctionStatement function;
+    private Environment closure;
 
-    LoxFunction(FunctionStatement function){ this.function = function;}
+    LoxFunction(FunctionStatement function, Environment closure){
+        this.function = function;
+        this.closure = closure;
+    }
 
     @Override
     public int arity() {
@@ -17,7 +21,7 @@ class LoxFunction implements LoxCallable{
     @Override
     public Object call(Interpreter interpreter, ArrayList<Object> arguments) {
         Environment environment = interpreter.environment;
-        interpreter.environment = new Environment(environment);
+        interpreter.environment = new Environment(closure);
 
         for (int i=0; i < arguments.size(); i++){
             interpreter.environment.define(function.parameters.get(i).lexeme, arguments.get(i));
