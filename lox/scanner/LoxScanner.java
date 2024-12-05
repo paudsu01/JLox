@@ -115,8 +115,7 @@ public class LoxScanner{
 
             case '"':
                // consume starting '"'
-               currentIndex++;
-               currentTokenStartIndex = currentIndex;
+               currentTokenStartIndex = currentIndex+1;
 
                // consume characters until ending '"' not found
                // support multi line strings
