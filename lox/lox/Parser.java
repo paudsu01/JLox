@@ -30,10 +30,11 @@ public class Parser {
 
     // Methods for grammar definitions
 
-    // declaration -> varDec | statement
+    // declaration -> funDec | varDec | statement
     private Statement parseDeclaration(){
        try{
             if (matchCurrentToken(TokenType.VAR)) return parseVarDeclaration();
+            else if (matchCurrentToken(TokenType.FUN)) return parseFunctionDeclaration(); 
             else return parseStatement(); 
        } catch (ParserError err){
             synchronize();
@@ -41,6 +42,44 @@ public class Parser {
             synchronize();
        }
         return null;
+    }
+
+    // funDec -> "fun" function
+    private Statement parseFunctionDeclaration(){
+        consumeToken(TokenType.FUN);
+        return parseFunction();
+    }
+    
+    // function -> IDENTIFIER "(" parameters ? ")" blockStatement
+    private Statement parseFunction(){
+        Token funcName = getCurrentToken();
+        consumeToken(TokenType.IDENTIFIER);
+
+        consumeToken(TokenType.LEFT_PAREN);
+        ArrayList<Token> parameters = new ArrayList<>();
+        if (!matchCurrentToken(TokenType.RIGHT_PAREN)){
+            parameters = parseParameters();
+        }
+        consumeToken(TokenType.RIGHT_PAREN);
+        
+        Statement blockStatement = parseBlockStatement();
+
+        return new FunctionStatement(funcName, parameters, blockStatement);
+    }
+
+    // parameters -> IDENTIFIER ("," IDENTIFIER)*
+    private ArrayList<Token> parseParameters(){
+
+        ArrayList<Token> parameters = new ArrayList<>();
+        do {
+            if (matchCurrentToken(TokenType.COMMA)) consumeToken(TokenType.COMMA);
+
+            parameters.add(getCurrentToken());
+            consumeToken(TokenType.IDENTIFIER);
+            if (parameters.size() >= 255) reportMaxLimitExceededError(getCurrentToken(), "Cannot have more than 255 parameters");
+
+        } while (matchCurrentToken(TokenType.COMMA));
+        return parameters;
     }
 
     // varDec -> "var" IDENTIFIER ("=" expression)? ";"
@@ -150,7 +189,7 @@ public class Parser {
         return new IfElseStatement(expression, ifStatement, elseStatement);
     }
 
-    // printStatement -> "print" expression ";"
+    // blockStatement -> "{" statement* "}"
     private Statement parseBlockStatement(){
         consumeToken(TokenType.LEFT_BRACE);
         ArrayList<Statement> statements = new ArrayList<>();
@@ -327,8 +366,10 @@ public class Parser {
     private ArrayList<Expression> parseArguments(){
         ArrayList<Expression> arguments = new ArrayList<>();
         do {
+            if (matchCurrentToken(TokenType.COMMA)) consumeToken(TokenType.COMMA);
+
             arguments.add(parseExpression());
-            if (arguments.size() >= 255) reportMaxArgumentsError(getCurrentToken());
+            if (arguments.size() >= 255) reportMaxLimitExceededError(getCurrentToken(), "Cannot have more than 255 parameters");
 
         } while (matchCurrentToken(TokenType.COMMA));
 
@@ -404,8 +445,7 @@ public class Parser {
         throw err;
     }
 
-    private void reportMaxArgumentsError(Token token){
-        String message = "Cannot have more than 255 arguments";
+    private void reportMaxLimitExceededError(Token token, String message){
         ParserError err = new ParserError(token,message);
         Error.reportError(token.line, message);
         throw err;

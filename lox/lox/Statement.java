@@ -87,6 +87,22 @@ class WhileStatement extends Statement{
 	 return visit.visitWhileStatement(this);}
 }
 
+class FunctionStatement extends Statement{
+	final Token name;
+	final ArrayList<Token> parameters;
+	final Statement body;
+
+	FunctionStatement(Token name, ArrayList<Token> parameters, Statement body){
+		this.name = name;
+		this.parameters = parameters;
+		this.body = body;
+	}
+
+	@Override
+	<R> R accept(StatementVisitor<R> visit){
+	 return visit.visitFunctionStatement(this);}
+}
+
 
 interface StatementVisitor<R>{
 	R visitExpressionStatement(ExpressionStatement stmt);
@@ -95,4 +111,5 @@ interface StatementVisitor<R>{
 	R visitBlockStatement(BlockStatement stmt);
 	R visitIfElseStatement(IfElseStatement stmt);
 	R visitWhileStatement(WhileStatement stmt);
+	R visitFunctionStatement(FunctionStatement stmt);
 }
