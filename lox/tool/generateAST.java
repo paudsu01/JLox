@@ -13,7 +13,7 @@ public class generateAST{
         }
 
         // Define the classes and their fields for the output file for Expression.java
-        String [] exprClasses = {"Binary", "Unary", "Grouping", "Literal", "Variable", "Assignment", "Logical"};
+        String [] exprClasses = {"Binary", "Unary", "Grouping", "Literal", "Variable", "Assignment", "Logical", "Call"};
         HashMap<String, String> exprClassesToFields = new HashMap<>();
         exprClassesToFields.put(exprClasses[0], "Expression left:Token operator:Expression right");
         exprClassesToFields.put(exprClasses[1], "Token operator:Expression expression");
@@ -22,10 +22,11 @@ public class generateAST{
         exprClassesToFields.put(exprClasses[4], "Token name");
         exprClassesToFields.put(exprClasses[5], "Token name:Expression value");
         exprClassesToFields.put(exprClasses[6], "Expression left:Token operator:Expression right");
+        exprClassesToFields.put(exprClasses[7], "Expression callee:Token closingParen:ArrayList<Expression> arguments");
 
 
         // Define the classes and their fields for the output file for Statement.java
-        String [] stmtClasses = {"Expression", "Print", "VarDec", "Block", "IfElse", "While"};
+        String [] stmtClasses = {"Expression", "Print", "VarDec", "Block", "IfElse", "While", "Function", "Return"};
         HashMap<String, String> stmtClassesToFields = new HashMap<>();
         stmtClassesToFields.put(stmtClasses[0], "Expression expression");
         stmtClassesToFields.put(stmtClasses[1], "Expression expression");
@@ -33,6 +34,8 @@ public class generateAST{
         stmtClassesToFields.put(stmtClasses[3], "ArrayList<Statement> statements");
         stmtClassesToFields.put(stmtClasses[4], "Expression expr:Statement ifStatement:Statement elseStatement");
         stmtClassesToFields.put(stmtClasses[5], "Expression expr:Statement statement");
+        stmtClassesToFields.put(stmtClasses[6], "Token name:ArrayList<Token> parameters:Statement body");
+        stmtClassesToFields.put(stmtClasses[7], "Token keyword:Expression returnValue");
 
         // Generate files Expression.java and Statement.java
         String packageName = "lox.lox";
@@ -47,7 +50,7 @@ public class generateAST{
 
         writer.printf("package %s;\n\n", packageName);
         writer.println("import lox.scanner.Token;");
-        if (fileName.equals("Statement")) writer.println("import java.util.ArrayList;");
+        writer.println("import java.util.ArrayList;");
 
         writer.printf("\nabstract class %s {\n", fileName);
         writer.printf("\tabstract <R> R accept(%sVisitor<R> visitor);\n", fileName);

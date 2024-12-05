@@ -30,10 +30,11 @@ public class Parser {
 
     // Methods for grammar definitions
 
-    // declaration -> varDec | statement
+    // declaration -> funDec | varDec | statement
     private Statement parseDeclaration(){
        try{
             if (matchCurrentToken(TokenType.VAR)) return parseVarDeclaration();
+            else if (matchCurrentToken(TokenType.FUN)) return parseFunctionDeclaration(); 
             else return parseStatement(); 
        } catch (ParserError err){
             synchronize();
@@ -41,6 +42,44 @@ public class Parser {
             synchronize();
        }
         return null;
+    }
+
+    // funDec -> "fun" function
+    private Statement parseFunctionDeclaration(){
+        consumeToken(TokenType.FUN);
+        return parseFunction();
+    }
+    
+    // function -> IDENTIFIER "(" parameters ? ")" blockStatement
+    private Statement parseFunction(){
+        Token funcName = getCurrentToken();
+        consumeToken(TokenType.IDENTIFIER);
+
+        consumeToken(TokenType.LEFT_PAREN);
+        ArrayList<Token> parameters = new ArrayList<>();
+        if (!matchCurrentToken(TokenType.RIGHT_PAREN)){
+            parameters = parseParameters();
+        }
+        consumeToken(TokenType.RIGHT_PAREN);
+        
+        Statement blockStatement = parseBlockStatement();
+
+        return new FunctionStatement(funcName, parameters, blockStatement);
+    }
+
+    // parameters -> IDENTIFIER ("," IDENTIFIER)*
+    private ArrayList<Token> parseParameters(){
+
+        ArrayList<Token> parameters = new ArrayList<>();
+        do {
+            if (matchCurrentToken(TokenType.COMMA)) consumeToken(TokenType.COMMA);
+
+            parameters.add(getCurrentToken());
+            consumeToken(TokenType.IDENTIFIER);
+            if (parameters.size() >= 255) reportMaxLimitExceededError(getCurrentToken(), "Cannot have more than 255 parameters");
+
+        } while (matchCurrentToken(TokenType.COMMA));
+        return parameters;
     }
 
     // varDec -> "var" IDENTIFIER ("=" expression)? ";"
@@ -63,7 +102,7 @@ public class Parser {
     }
 
 
-    // statement -> expresssionStatment | printStatement | blockStatement | ifElseStatement | whileStatement
+    // statement -> expresssionStatment | printStatement | blockStatement | ifElseStatement | whileStatement | returnStatement
     private Statement parseStatement(){
 
         if (matchCurrentToken(TokenType.PRINT)) return parsePrintStatement();
@@ -71,6 +110,7 @@ public class Parser {
         else if (matchCurrentToken(TokenType.IF)) return parseIfElseStatement();
         else if (matchCurrentToken(TokenType.WHILE)) return parseWhileStatement();
         else if (matchCurrentToken(TokenType.FOR)) return parseForStatement();
+        else if (matchCurrentToken(TokenType.RETURN)) return parseReturnStatement();
         
         return parseExpressionStatement();
     }
@@ -150,7 +190,7 @@ public class Parser {
         return new IfElseStatement(expression, ifStatement, elseStatement);
     }
 
-    // printStatement -> "print" expression ";"
+    // blockStatement -> "{" statement* "}"
     private Statement parseBlockStatement(){
         consumeToken(TokenType.LEFT_BRACE);
         ArrayList<Statement> statements = new ArrayList<>();
@@ -171,6 +211,18 @@ public class Parser {
         consumeToken(TokenType.SEMICOLON);
 
         return new PrintStatement(expr);
+    }
+
+    // returnStatement -> "return" expression? ";"
+    private Statement parseReturnStatement(){
+        Token returnToken = getCurrentToken();
+        consumeToken(TokenType.RETURN);
+
+        Expression expression = null;
+        if (!matchCurrentToken(TokenType.SEMICOLON)) expression = parseExpression();
+
+        consumeToken(TokenType.SEMICOLON);
+        return new ReturnStatement(returnToken, expression);
     }
 
     // expressionStatement -> expression ";"
@@ -294,7 +346,7 @@ public class Parser {
         return expression;
     }
 
-     // unary -> ( "!" | "-" ) unary | primary
+     // unary -> ( "!" | "-" ) unary | call
     private Expression parseUnary(){
         if (matchCurrentToken(TokenType.SUBTRACT, TokenType.NOT)){
             // consume matched token
@@ -303,8 +355,38 @@ public class Parser {
             return new UnaryExpression(token, parseUnary());
 
         } else {
-            return parsePrimary();
+            return parseCall();
         }
+    }
+
+    // call -> primary ( "(" arguments ? ")" )* ;
+    private Expression parseCall(){
+        Expression expression = parsePrimary();
+
+        while (matchCurrentToken(TokenType.LEFT_PAREN)){
+            consumeToken(TokenType.LEFT_PAREN);
+
+            ArrayList<Expression> arguments;
+            if (!matchCurrentToken(TokenType.RIGHT_PAREN)) arguments = parseArguments();
+            else arguments = new ArrayList<>();
+
+            expression = new CallExpression(expression, getCurrentToken(), arguments);
+            consumeToken(TokenType.RIGHT_PAREN);
+        }
+        return expression;
+    }
+
+    private ArrayList<Expression> parseArguments(){
+        ArrayList<Expression> arguments = new ArrayList<>();
+        do {
+            if (matchCurrentToken(TokenType.COMMA)) consumeToken(TokenType.COMMA);
+
+            arguments.add(parseExpression());
+            if (arguments.size() >= 255) reportMaxLimitExceededError(getCurrentToken(), "Cannot have more than 255 parameters");
+
+        } while (matchCurrentToken(TokenType.COMMA));
+
+        return arguments;
     }
 
     // primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
@@ -373,6 +455,12 @@ public class Parser {
     private void reportParserError(Token token, String message){
         ParserError err = new ParserError(token, message);
         Error.reportParserError(err);
+        throw err;
+    }
+
+    private void reportMaxLimitExceededError(Token token, String message){
+        ParserError err = new ParserError(token,message);
+        Error.reportError(token.line, message);
         throw err;
     }
 

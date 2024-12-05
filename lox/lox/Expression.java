@@ -1,6 +1,7 @@
 package lox.lox;
 
 import lox.scanner.Token;
+import java.util.ArrayList;
 
 abstract class Expression {
 	abstract <R> R accept(ExpressionVisitor<R> visitor);
@@ -102,6 +103,22 @@ class LogicalExpression extends Expression{
 	 return visit.visitLogicalExpression(this);}
 }
 
+class CallExpression extends Expression{
+	final Expression callee;
+	final Token closingParen;
+	final ArrayList<Expression> arguments;
+
+	CallExpression(Expression callee, Token closingParen, ArrayList<Expression> arguments){
+		this.callee = callee;
+		this.closingParen = closingParen;
+		this.arguments = arguments;
+	}
+
+	@Override
+	<R> R accept(ExpressionVisitor<R> visit){
+	 return visit.visitCallExpression(this);}
+}
+
 
 interface ExpressionVisitor<R>{
 	R visitBinaryExpression(BinaryExpression expr);
@@ -111,4 +128,5 @@ interface ExpressionVisitor<R>{
 	R visitVariableExpression(VariableExpression expr);
 	R visitAssignmentExpression(AssignmentExpression expr);
 	R visitLogicalExpression(LogicalExpression expr);
+	R visitCallExpression(CallExpression expr);
 }

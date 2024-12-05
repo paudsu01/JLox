@@ -1,21 +1,25 @@
 package lox.lox;
 
 import java.util.ArrayList;
+import java.util.Scanner;
 
 import lox.error.Error;
 import lox.error.RuntimeError;
+import lox.error.Return;
 
+import lox.scanner.LoxScanner;
 import lox.scanner.Token;
 import lox.scanner.TokenType;
 
 public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<Object>{
    
     private final ArrayList<Statement> statements;
-    private Environment environment;
+    Environment environment;
 
     public Interpreter(ArrayList<Statement> stmnts, Environment env){
         statements = stmnts;
         environment = env;
+        addNativeFunctions();
     }
 
     protected void interpret(){
@@ -23,6 +27,8 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
             for (Statement stmt : statements){
                 evaluate(stmt);
             }
+        } catch(Return ret){
+            Error.reportRuntimeError(ret);
         } catch (RuntimeError error){
         }
     }
@@ -59,6 +65,13 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     @Override
+    public Object visitFunctionStatement(FunctionStatement stmt) {
+        LoxFunction function = new LoxFunction(stmt, environment);
+        environment.define(stmt.name.lexeme, function);
+        return null;
+    }
+
+    @Override
     public Object visitVarDecStatement(VarDecStatement stmt) {
         Object value = null;
         if (stmt.initializer != null) value = evaluate(stmt.initializer);
@@ -79,6 +92,14 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         // Change environment back
         environment = superEnvironment;
         return null;
+    }
+
+    @Override
+    public Object visitReturnStatement(ReturnStatement stmt){
+        Object value = null;
+        if (stmt.returnValue != null) value = evaluate(stmt.returnValue);
+
+        throw new Return(stmt.keyword, value);
     }
 
     // VISITOR PATTERN visit methods for expression
@@ -126,9 +147,13 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
                     return (double)leftValue + (double)rightValue;
                 } else if ((leftValue instanceof String) && (rightValue instanceof String)){
                     return (String)leftValue + (String)rightValue;
+                } else if ((leftValue instanceof Double) && (rightValue instanceof String)){
+                    return stringify(leftValue) + (String)rightValue;
+                } else if ((rightValue instanceof Double) && (leftValue instanceof String)){
+                    return (String)leftValue + stringify(rightValue); 
                 }
 
-                RuntimeError err = new RuntimeError(expr.operator, "Both numbers or both strings expected");
+                RuntimeError err = new RuntimeError(expr.operator, "Both numbers, both strings, or one of each number and string expected");
                 throw err;
 
             case SUBTRACT:
@@ -190,6 +215,32 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     @Override
+    public Object visitCallExpression(CallExpression expr) {
+        ArrayList<Object> arguments = new ArrayList<>();
+        for (Expression argument: expr.arguments){
+            arguments.add(evaluate(argument));
+        }
+
+        Object callee = evaluate(expr.callee);
+        if (!(callee instanceof LoxCallable)) createRuntimeError(expr.closingParen, "Object is not callable");
+
+        LoxCallable function = (LoxCallable) callee;
+
+        if (function.arity() != arguments.size())
+            createRuntimeError(expr.closingParen, String.format("Expected %d argument(s), but got %d of them", function.arity(), arguments.size()));
+
+        Object functionCall = null;
+        try {
+            functionCall = function.call(this, arguments);
+    
+        } catch (NumberFormatException e) {
+            // For "number" native function
+            throw createRuntimeError(expr.closingParen, "Cannot convert String to Number");
+        }
+        return functionCall;
+    }
+
+    @Override
     public Object visitLiteralExpression(LiteralExpression expr) {
         return expr.value;
     }
@@ -224,22 +275,28 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     private void checkIfOperandIsANumber(Token token, Object value){
         if (value instanceof Double) return;
-        throw createRuntimeError(token, "Number Literal expected");
+        throw createOperandError(token, "Number Literal expected");
     }
 
     private void checkIfOperandsAreNumbers(Token token, Object a, Object b){
         if (a instanceof Double && b instanceof Double) return;
-        throw createRuntimeError(token, "Numbers expected as operands");
+        throw createOperandError(token, "Numbers expected as operands");
     }
 
     private void checkIfRightValueZero(Token token, Object rightValue){
         if ((double) rightValue != (double) 0) return;
-        throw createRuntimeError(token, "Second operand cannot be Zero");
+        throw createOperandError(token, "Second operand cannot be Zero");
+    }
+
+    private RuntimeError createOperandError(Token token, String message){
+        RuntimeError err = new RuntimeError(token, message);
+        Error.reportOperandError(err.token, err.message);
+        return err;
     }
 
     private RuntimeError createRuntimeError(Token token, String message){
         RuntimeError err = new RuntimeError(token, message);
-        Error.reportOperandError(err.token, err.message);
+        Error.reportRuntimeError(err);
         return err;
     }
 
@@ -253,5 +310,64 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         if (stringValue.endsWith(".0")) return stringValue.substring(0, stringValue.length()-2);
         else return stringValue;
 
+    }
+
+    private void addNativeFunctions(){
+
+        // Predefined clock function
+        environment.define("clock",
+            new LoxCallable(){
+
+                @Override
+                public int arity(){ return 0; }
+
+                @Override
+                public Object call(Interpreter interpreter, ArrayList<Object> arguments) {
+                    return (double) System.currentTimeMillis() / 1000;
+                }
+
+                public String toString(){
+                    return "<native fn: clock -> returns current time in second(s)>";
+                }
+            });
+        
+            // Predefined inputInt function
+            environment.define("input",
+                new LoxCallable(){
+
+                @Override
+                public int arity(){ return 0; }
+
+                @Override
+                public Object call(Interpreter interpreter, ArrayList<Object> arguments) {
+                    Scanner scanner = new Scanner(System.in);
+                    String input = "";
+                    if (scanner.hasNext()) input = scanner.nextLine();
+                    return input;
+
+                    // VVIP: The scanner shouldn't be closed since it closes the System.in input stream as well
+                }
+
+                public String toString(){
+                    return "<native fn: input -> returns user input as String>";
+                }
+            });
+
+            // Predefined string to number function
+            environment.define("number",
+                new LoxCallable(){
+
+                @Override
+                public int arity(){ return 1; }
+
+                @Override
+                public Object call(Interpreter interpreter, ArrayList<Object> arguments) {
+                    return Double.parseDouble(stringify(arguments.get(0)));
+                }
+
+                public String toString(){
+                    return "<native fn: number -> returns the provided string argument as number if applicable>";
+                }
+            });
     }
 }
