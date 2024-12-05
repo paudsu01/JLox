@@ -5,6 +5,8 @@ import java.util.Scanner;
 
 import lox.error.Error;
 import lox.error.RuntimeError;
+import lox.error.Return;
+
 import lox.scanner.LoxScanner;
 import lox.scanner.Token;
 import lox.scanner.TokenType;
@@ -25,6 +27,8 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
             for (Statement stmt : statements){
                 evaluate(stmt);
             }
+        } catch(Return ret){
+            Error.reportRuntimeError(ret);
         } catch (RuntimeError error){
         }
     }
@@ -88,6 +92,14 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         // Change environment back
         environment = superEnvironment;
         return null;
+    }
+
+    @Override
+    public Object visitReturnStatement(ReturnStatement stmt){
+        Object value = null;
+        if (stmt.returnValue != null) value = evaluate(stmt.returnValue);
+
+        throw new Return(stmt.keyword, value);
     }
 
     // VISITOR PATTERN visit methods for expression

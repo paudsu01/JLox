@@ -102,7 +102,7 @@ public class Parser {
     }
 
 
-    // statement -> expresssionStatment | printStatement | blockStatement | ifElseStatement | whileStatement
+    // statement -> expresssionStatment | printStatement | blockStatement | ifElseStatement | whileStatement | returnStatement
     private Statement parseStatement(){
 
         if (matchCurrentToken(TokenType.PRINT)) return parsePrintStatement();
@@ -110,6 +110,7 @@ public class Parser {
         else if (matchCurrentToken(TokenType.IF)) return parseIfElseStatement();
         else if (matchCurrentToken(TokenType.WHILE)) return parseWhileStatement();
         else if (matchCurrentToken(TokenType.FOR)) return parseForStatement();
+        else if (matchCurrentToken(TokenType.RETURN)) return parseReturnStatement();
         
         return parseExpressionStatement();
     }
@@ -210,6 +211,18 @@ public class Parser {
         consumeToken(TokenType.SEMICOLON);
 
         return new PrintStatement(expr);
+    }
+
+    // returnStatement -> "return" expression? ";"
+    private Statement parseReturnStatement(){
+        Token returnToken = getCurrentToken();
+        consumeToken(TokenType.RETURN);
+
+        Expression expression = null;
+        if (!matchCurrentToken(TokenType.SEMICOLON)) expression = parseExpression();
+
+        consumeToken(TokenType.SEMICOLON);
+        return new ReturnStatement(returnToken, expression);
     }
 
     // expressionStatement -> expression ";"

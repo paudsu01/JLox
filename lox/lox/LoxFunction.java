@@ -1,7 +1,7 @@
 package lox.lox;
 
 import java.util.ArrayList;
-import lox.scanner.Token;
+import lox.error.Return;
 
 class LoxFunction implements LoxCallable{
 
@@ -22,7 +22,12 @@ class LoxFunction implements LoxCallable{
         for (int i=0; i < arguments.size(); i++){
             interpreter.environment.define(function.parameters.get(i).lexeme, arguments.get(i));
         }
-        interpreter.visitBlockStatement((BlockStatement) function.body);
+        try {
+            interpreter.visitBlockStatement((BlockStatement) function.body);
+        } catch (Return ret) {
+            interpreter.environment = environment;
+            return ret.returnValue;
+        }
         interpreter.environment = environment;
         return null;
     }

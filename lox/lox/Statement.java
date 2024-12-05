@@ -103,6 +103,20 @@ class FunctionStatement extends Statement{
 	 return visit.visitFunctionStatement(this);}
 }
 
+class ReturnStatement extends Statement{
+	final Token keyword;
+	final Expression returnValue;
+
+	ReturnStatement(Token keyword, Expression returnValue){
+		this.keyword = keyword;
+		this.returnValue = returnValue;
+	}
+
+	@Override
+	<R> R accept(StatementVisitor<R> visit){
+	 return visit.visitReturnStatement(this);}
+}
+
 
 interface StatementVisitor<R>{
 	R visitExpressionStatement(ExpressionStatement stmt);
@@ -112,4 +126,5 @@ interface StatementVisitor<R>{
 	R visitIfElseStatement(IfElseStatement stmt);
 	R visitWhileStatement(WhileStatement stmt);
 	R visitFunctionStatement(FunctionStatement stmt);
+	R visitReturnStatement(ReturnStatement stmt);
 }
