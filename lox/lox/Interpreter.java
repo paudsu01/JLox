@@ -12,7 +12,7 @@ import lox.scanner.TokenType;
 public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<Object>{
    
     private final ArrayList<Statement> statements;
-    private Environment environment;
+    Environment environment;
 
     public Interpreter(ArrayList<Statement> stmnts, Environment env){
         statements = stmnts;
@@ -57,6 +57,13 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         if (truthOrFalse(evaluate(stmt.expr))) evaluate(stmt.ifStatement);
         else if (stmt.elseStatement != null) evaluate(stmt.elseStatement);
 
+        return null;
+    }
+
+    @Override
+    public Object visitFunctionStatement(FunctionStatement stmt) {
+        LoxFunction function = new LoxFunction(stmt);
+        environment.define(stmt.name.lexeme, function);
         return null;
     }
 
