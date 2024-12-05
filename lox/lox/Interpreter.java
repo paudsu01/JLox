@@ -1,10 +1,11 @@
 package lox.lox;
 
 import java.util.ArrayList;
+import java.util.Scanner;
 
 import lox.error.Error;
 import lox.error.RuntimeError;
-
+import lox.scanner.LoxScanner;
 import lox.scanner.Token;
 import lox.scanner.TokenType;
 
@@ -16,6 +17,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Interpreter(ArrayList<Statement> stmnts, Environment env){
         statements = stmnts;
         environment = env;
+        addNativeFunctions();
     }
 
     protected void interpret(){
@@ -126,9 +128,13 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
                     return (double)leftValue + (double)rightValue;
                 } else if ((leftValue instanceof String) && (rightValue instanceof String)){
                     return (String)leftValue + (String)rightValue;
+                } else if ((leftValue instanceof Double) && (rightValue instanceof String)){
+                    return stringify(leftValue) + (String)rightValue;
+                } else if ((rightValue instanceof Double) && (leftValue instanceof String)){
+                    return (String)leftValue + stringify(rightValue); 
                 }
 
-                RuntimeError err = new RuntimeError(expr.operator, "Both numbers or both strings expected");
+                RuntimeError err = new RuntimeError(expr.operator, "Both numbers, both strings, or one of each number and string expected");
                 throw err;
 
             case SUBTRACT:
@@ -204,7 +210,15 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         if (function.arity() != arguments.size())
             createRuntimeError(expr.closingParen, String.format("Expected %d argument(s), but got %d of them", function.arity(), arguments.size()));
 
-        return function.call(this, arguments);
+        Object functionCall = null;
+        try {
+            functionCall = function.call(this, arguments);
+    
+        } catch (NumberFormatException e) {
+            // For "number" native function
+            throw createRuntimeError(expr.closingParen, "Cannot convert String to Number");
+        }
+        return functionCall;
     }
 
     @Override
@@ -277,5 +291,64 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         if (stringValue.endsWith(".0")) return stringValue.substring(0, stringValue.length()-2);
         else return stringValue;
 
+    }
+
+    private void addNativeFunctions(){
+
+        // Predefined clock function
+        environment.define("clock",
+            new LoxCallable(){
+
+                @Override
+                public int arity(){ return 0; }
+
+                @Override
+                public Object call(Interpreter interpreter, ArrayList<Object> arguments) {
+                    return (double) System.currentTimeMillis() / 1000;
+                }
+
+                public String toString(){
+                    return "<native fn: clock -> returns current time in second(s)>";
+                }
+            });
+        
+            // Predefined inputInt function
+            environment.define("input",
+                new LoxCallable(){
+
+                @Override
+                public int arity(){ return 0; }
+
+                @Override
+                public Object call(Interpreter interpreter, ArrayList<Object> arguments) {
+                    Scanner scanner = new Scanner(System.in);
+                    String input = "";
+                    if (scanner.hasNext()) input = scanner.nextLine();
+                    return input;
+
+                    // VVIP: The scanner shouldn't be closed since it closes the System.in input stream as well
+                }
+
+                public String toString(){
+                    return "<native fn: input -> returns user input as String>";
+                }
+            });
+
+            // Predefined string to number function
+            environment.define("number",
+                new LoxCallable(){
+
+                @Override
+                public int arity(){ return 1; }
+
+                @Override
+                public Object call(Interpreter interpreter, ArrayList<Object> arguments) {
+                    return Double.parseDouble(stringify(arguments.get(0)));
+                }
+
+                public String toString(){
+                    return "<native fn: number -> returns the provided string argument as number if applicable>";
+                }
+            });
     }
 }

@@ -39,6 +39,7 @@ public class Lox{
         while (true){
             System.out.print(">> ");
             user_input = scanner.nextLine();
+
             if (user_input.equals("exit")) break;
 
             run(user_input, env);
