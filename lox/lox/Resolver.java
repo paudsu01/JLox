@@ -90,7 +90,18 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
 
     @Override
     public Void visitFunctionStatement(FunctionStatement stmt) {
-        // TODO Auto-generated method stub
+
+        declare(stmt.name);
+        define(stmt.name);
+
+        beginScope();
+        for (Token token : stmt.parameters){
+            declare(token);
+            define(token);
+        }
+        resolve(stmt.body);
+        endScope();
+
         return null;
     }
 
@@ -139,7 +150,8 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
 
     @Override
     public Void visitAssignmentExpression(AssignmentExpression expr) {
-        // TODO Auto-generated method stub
+        resolve(expr.value);
+        resolveVariableUsage(expr, expr.name);
         return null;
     }
 
