@@ -44,6 +44,26 @@ public class Environment {
         
     }
 
+    void assignAt(Token name, Object newValue, int depth){
+        Environment requiredEnvironment = getRequiredEnvironment(depth);
+        requiredEnvironment.assign(name, newValue);
+    }
+
+    Object getAt(Token token, Integer depth){
+        Environment requiredEnvironment = getRequiredEnvironment(depth);
+        return requiredEnvironment.get(token);
+    }
+
+    private Environment getRequiredEnvironment(int depth){
+        int currentDepth = depth;
+        Environment requiredEnvironment = this;
+        while (currentDepth > 0){
+            requiredEnvironment = requiredEnvironment.superEnvironment; 
+            currentDepth--;
+        }
+        return requiredEnvironment;
+    }
+
     // Error report methods
 
     void reportAndThrowUndefinedVariableError(Token token){

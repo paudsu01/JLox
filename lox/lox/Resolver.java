@@ -144,14 +144,14 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
             && scopes.getLast().get(expr.name.lexeme) == Boolean.FALSE) 
                 Error.reportResolverError(expr.name, "Cannot read a local variable in its own initializer");
         
-        resolveVariableUsage(expr, expr.name);
+        resolveLocalVariableUsage(expr, expr.name);
         return null;
     }
 
     @Override
     public Void visitAssignmentExpression(AssignmentExpression expr) {
         resolve(expr.value);
-        resolveVariableUsage(expr, expr.name);
+        resolveLocalVariableUsage(expr, expr.name);
         return null;
     }
 
@@ -184,7 +184,10 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
 
     private void declare(Token token){
         if (scopes.isEmpty()) return;
-        scopes.getLast().put(token.lexeme, Boolean.FALSE);
+        HashMap<String, Boolean> scope = scopes.getLast();
+
+        if (scope.containsKey(token.lexeme)) Error.reportResolverError(token, "Cannot re-declare variables in this scope");
+        scope.put(token.lexeme, Boolean.FALSE);
     }
 
     private void define(Token token){
@@ -192,10 +195,11 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
         scopes.getLast().put(token.lexeme, Boolean.TRUE);
     }
 
-    private void resolveVariableUsage(Expression varExpression, Token token){
+    private void resolveLocalVariableUsage(Expression varExpression, Token token){
         Integer numberOfHops = calculateHops(token.lexeme, 0);
-        // Assume it is a global variable
+        // Assume it is a global variable if numberOfHops is null
         if (numberOfHops == null) return;
+
         interpreter.resolve(varExpression, numberOfHops);
     }
 

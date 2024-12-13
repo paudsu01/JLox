@@ -1,6 +1,7 @@
 package lox.lox;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 
 import lox.error.Error;
@@ -15,10 +16,14 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
    
     private final ArrayList<Statement> statements;
     Environment environment;
+    final Environment globals;
+    final HashMap<Expression, Integer> locals = new HashMap<>();
 
     public Interpreter(ArrayList<Statement> stmnts, Environment env){
         statements = stmnts;
-        environment = env;
+        globals = env;
+        environment = globals;
+
         addNativeFunctions();
     }
 
@@ -106,13 +111,20 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     @Override
     public Object visitVariableExpression(VariableExpression expr) {
-        return environment.get(expr.name);
+        if (locals.get(expr) == null){
+            return globals.get(expr.name);
+        } else {
+            return environment.getAt(expr.name, locals.get(expr));
+        }
     }
 
     @Override
     public Object visitAssignmentExpression(AssignmentExpression expr){
         Object value = evaluate(expr.value);
-        environment.assign(expr.name, value);
+        Integer depth = locals.get(expr);
+
+        if (depth == null) globals.assign(expr.name, value);
+        environment.assignAt(expr.name, value, depth);
         return value;
     }
 
@@ -313,7 +325,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     void resolve(Expression expr, int depth){
-
+        locals.put(expr, depth);
     }
 
     private void addNativeFunctions(){
