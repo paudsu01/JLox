@@ -312,6 +312,10 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     }
 
+    void resolve(Expression expr, int depth){
+
+    }
+
     private void addNativeFunctions(){
 
         // Predefined clock function

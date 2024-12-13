@@ -1,5 +1,9 @@
 package lox.lox;
 
+import lox.error.RuntimeError;
+import lox.scanner.Token;
+import lox.error.Error;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -53,12 +57,19 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
 
     @Override
     public Void visitVarDecStatement(VarDecStatement stmt) {
+        if (scopes.isEmpty()) return null;
+
+        declare(stmt.name);
+        if (stmt.initializer != null) resolve(stmt.initializer);
+        define(stmt.name);
         return null;
     }
 
     @Override
     public Void visitBlockStatement(BlockStatement stmt) {
-        // TODO Auto-generated method stub
+        beginScope();
+        resolve(stmt.statements);
+        endScope();
         return null;
     }
 
@@ -117,7 +128,12 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
 
     @Override
     public Void visitVariableExpression(VariableExpression expr) {
-        // TODO Auto-generated method stub
+
+        if ((!scopes.isEmpty())
+            && scopes.getLast().get(expr.name.lexeme) == Boolean.FALSE) 
+                Error.reportResolverError(expr.name, "Cannot read a local variable in its own initializer");
+        
+        resolveVariableUsage(expr, expr.name);
         return null;
     }
 
@@ -142,5 +158,39 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
             resolve(argument);
         }
         return null;
+    }
+
+    // Helper methods
+
+    private void beginScope(){
+        scopes.addLast(new HashMap<String, Boolean>());
+    }
+
+    private void endScope(){
+        scopes.removeLast();
+    }
+
+    private void declare(Token token){
+        if (scopes.isEmpty()) return;
+        scopes.getLast().put(token.lexeme, Boolean.FALSE);
+    }
+
+    private void define(Token token){
+        if (scopes.isEmpty()) return;
+        scopes.getLast().put(token.lexeme, Boolean.TRUE);
+    }
+
+    private void resolveVariableUsage(Expression varExpression, Token token){
+        Integer numberOfHops = calculateHops(token.lexeme, 0);
+        // Assume it is a global variable
+        if (numberOfHops == null) return;
+        interpreter.resolve(varExpression, numberOfHops);
+    }
+
+    private Integer calculateHops(String lexeme, int currentHops){
+        if ((scopes.size() -1 - currentHops) < 0 ) return null;
+        if (scopes.get(scopes.size() -1 -currentHops).containsKey(lexeme)) return currentHops;
+
+        return calculateHops(lexeme, currentHops+1);
     }
 }
