@@ -25,6 +25,10 @@ public class Error{
 		reportError(line, message);
 	}
 
+	public static void reportResolverError(Token token, String messsage){
+		reportError(token.line, messsage);
+	}
+
 	public static void reportUsageError(){
 		hadError = true;
         System.err.println("Usage: jlox\nUsage: jlox loxFile.lox");
