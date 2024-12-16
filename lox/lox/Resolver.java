@@ -1,6 +1,5 @@
 package lox.lox;
 
-import lox.error.RuntimeError;
 import lox.scanner.Token;
 import lox.error.Error;
 

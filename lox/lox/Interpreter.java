@@ -8,9 +8,7 @@ import lox.error.Error;
 import lox.error.RuntimeError;
 import lox.error.Return;
 
-import lox.scanner.LoxScanner;
 import lox.scanner.Token;
-import lox.scanner.TokenType;
 
 public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<Object>{
    
@@ -124,7 +122,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         Integer depth = locals.get(expr);
 
         if (depth == null) globals.assign(expr.name, value);
-        environment.assignAt(expr.name, value, depth);
+        else environment.assignAt(expr.name, value, depth);
         return value;
     }
 
