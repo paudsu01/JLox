@@ -20,14 +20,18 @@ public class LoxInstance {
     }
 
     void set(Token name, Object value){
-        fields.put(name.lexeme, value);
+        if (loxClass.methods.containsKey(name.lexeme)) throw Error.createRuntimeError(name, "Cannot set field to method name");
+        else fields.put(name.lexeme, value);
     }
 
     Object get(Token name){
         if (fields.containsKey(name.lexeme)) {
             return fields.get(name.lexeme);
-        }
-        else {
+        
+        } else if (loxClass.methods.containsKey(name.lexeme)){
+            return loxClass.methods.get(name.lexeme);
+
+        } else {
             throw Error.createRuntimeError(name, "Undefined field");
         }
     }

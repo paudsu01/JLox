@@ -3,6 +3,8 @@ package lox.lox;
 import lox.scanner.Token;
 import lox.error.Error;
 
+import static lox.scanner.TokenType.values;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -110,7 +112,7 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
         declare(stmt.name);
         define(stmt.name);
 
-        for (Statement function: stmt.methods){
+        for (FunctionStatement function: stmt.methods){
             resolve(function);
         }
         return null; 

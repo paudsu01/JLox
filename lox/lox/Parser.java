@@ -7,6 +7,7 @@ import lox.scanner.Token;
 import lox.scanner.TokenType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Parser {
     
@@ -59,9 +60,10 @@ public class Parser {
 
         consumeToken(TokenType.LEFT_BRACE);
 
-        ArrayList<Statement> methods = new ArrayList<>();
+        ArrayList<FunctionStatement> methods = new ArrayList<>();
         while ((! noMoreTokensToConsume()) && !matchCurrentToken(TokenType.RIGHT_BRACE)){
-            methods.add(parseFunction(FuncType.METHOD));
+            FunctionStatement function = (FunctionStatement) parseFunction(FuncType.METHOD);
+            methods.add(function);
         }
 
         consumeToken(TokenType.RIGHT_BRACE);

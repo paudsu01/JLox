@@ -69,7 +69,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     @Override
     public Object visitFunctionStatement(FunctionStatement stmt) {
-        LoxFunction function = new LoxFunction(stmt, environment);
+        LoxFunction function = new LoxFunction(stmt, environment, stmt.type);
         environment.define(stmt.name.lexeme, function);
         return null;
     }
@@ -77,7 +77,13 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     @Override
     public Object visitClassStatement(ClassStatement stmt){
         environment.define(stmt.name.lexeme, null);
-        LoxClass class_ = new LoxClass(stmt.name, stmt.methods);
+
+        HashMap<String, LoxFunction> methods = new HashMap<>();
+        for (FunctionStatement funcStatement : stmt.methods){
+            methods.put(funcStatement.name.lexeme, new LoxFunction(funcStatement, environment, funcStatement.type));
+        }
+
+        LoxClass class_ = new LoxClass(stmt.name, methods);
         environment.assign(stmt.name, class_);
         return null;
     }
@@ -240,12 +246,12 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         }
 
         Object callee = evaluate(expr.callee);
-        if (!(callee instanceof LoxCallable)) Error.createRuntimeError(expr.closingParen, "Object is not callable");
+        if (!(callee instanceof LoxCallable)) throw Error.createRuntimeError(expr.closingParen, "Object is not callable");
 
         LoxCallable function = (LoxCallable) callee;
 
         if (function.arity() != arguments.size())
-            Error.createRuntimeError(expr.closingParen, String.format("Expected %d argument(s), but got %d of them", function.arity(), arguments.size()));
+            throw Error.createRuntimeError(expr.closingParen, String.format("Expected %d argument(s), but got %d of them", function.arity(), arguments.size()));
 
         Object functionCall = null;
         try {

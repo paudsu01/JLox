@@ -1,14 +1,16 @@
 package lox.lox;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+
 import lox.scanner.Token;
 
 public class LoxClass implements LoxCallable{
    
     private Token name;
-    private ArrayList<Statement> methods;
+    HashMap<String,LoxFunction> methods;
 
-    LoxClass(Token name, ArrayList<Statement> methods){
+    LoxClass(Token name, HashMap<String,LoxFunction> methods){
         this.name = name;
         this.methods = methods;
     }

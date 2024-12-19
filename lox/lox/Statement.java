@@ -121,9 +121,9 @@ class ReturnStatement extends Statement{
 
 class ClassStatement extends Statement{
 	final Token name;
-	final ArrayList<Statement> methods;
+	final ArrayList<FunctionStatement> methods;
 
-	ClassStatement(Token name, ArrayList<Statement> methods){
+	ClassStatement(Token name, ArrayList<FunctionStatement> methods){
 		this.name = name;
 		this.methods = methods;
 	}

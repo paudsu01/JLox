@@ -7,10 +7,12 @@ class LoxFunction implements LoxCallable{
 
     private final FunctionStatement function;
     private Environment closure;
+    private FuncType type;
 
-    LoxFunction(FunctionStatement function, Environment closure){
+    LoxFunction(FunctionStatement function, Environment closure, FuncType type){
         this.function = function;
         this.closure = closure;
+        this.type = type;
     }
 
     @Override
@@ -38,7 +40,8 @@ class LoxFunction implements LoxCallable{
 
     @Override
     public String toString(){
-        return String.format("<fn %s>", function.name.lexeme);
+        String name = (type == FuncType.FUNCTION) ? "fn" : "method";
+        return String.format("<%s %s>", name, function.name.lexeme);
     }
     
 }
