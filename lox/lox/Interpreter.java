@@ -240,12 +240,12 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         }
 
         Object callee = evaluate(expr.callee);
-        if (!(callee instanceof LoxCallable)) createRuntimeError(expr.closingParen, "Object is not callable");
+        if (!(callee instanceof LoxCallable)) Error.createRuntimeError(expr.closingParen, "Object is not callable");
 
         LoxCallable function = (LoxCallable) callee;
 
         if (function.arity() != arguments.size())
-            createRuntimeError(expr.closingParen, String.format("Expected %d argument(s), but got %d of them", function.arity(), arguments.size()));
+            Error.createRuntimeError(expr.closingParen, String.format("Expected %d argument(s), but got %d of them", function.arity(), arguments.size()));
 
         Object functionCall = null;
         try {
@@ -253,9 +253,19 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     
         } catch (NumberFormatException e) {
             // For "number" native function
-            throw createRuntimeError(expr.closingParen, "Cannot convert String to Number");
+            throw Error.createRuntimeError(expr.closingParen, "Cannot convert String to Number");
         }
         return functionCall;
+    }
+
+    @Override
+    public Object visitGetExpression(GetExpression expr){
+        Object object = evaluate(expr.object);
+        if (object instanceof LoxInstance){
+            return ((LoxInstance) object).get(expr.name);
+        }
+        // Error since not an instance
+        throw Error.createRuntimeError(expr.name, "Cannot access properties of a non-instance");
     }
 
     @Override
@@ -309,12 +319,6 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     private RuntimeError createOperandError(Token token, String message){
         RuntimeError err = new RuntimeError(token, message);
         Error.reportOperandError(err.token, err.message);
-        return err;
-    }
-
-    private RuntimeError createRuntimeError(Token token, String message){
-        RuntimeError err = new RuntimeError(token, message);
-        Error.reportRuntimeError(err);
         return err;
     }
 

@@ -38,4 +38,10 @@ public class Error{
 		hadError = true;
 		System.err.println(String.format("Line [%d] : %s", line, message));
 	}
+
+    public static RuntimeError createRuntimeError(Token token, String message){
+        RuntimeError err = new RuntimeError(token, message);
+        Error.reportRuntimeError(err);
+        return err;
+    }
 }

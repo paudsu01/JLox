@@ -378,19 +378,28 @@ public class Parser {
         }
     }
 
-    // call -> primary ( "(" arguments ? ")" )* ;
+    // call -> primary ( ( "(" arguments ? ")" ) | ("." IDENTIFIER ))* ;
     private Expression parseCall(){
         Expression expression = parsePrimary();
 
-        while (matchCurrentToken(TokenType.LEFT_PAREN)){
-            consumeToken(TokenType.LEFT_PAREN);
+        while (matchCurrentToken(TokenType.LEFT_PAREN) || matchCurrentToken(TokenType.DOT)){
 
-            ArrayList<Expression> arguments;
-            if (!matchCurrentToken(TokenType.RIGHT_PAREN)) arguments = parseArguments();
-            else arguments = new ArrayList<>();
+            if (matchCurrentToken(TokenType.LEFT_PAREN)){
+                consumeToken(TokenType.LEFT_PAREN);
 
-            expression = new CallExpression(expression, getCurrentToken(), arguments);
-            consumeToken(TokenType.RIGHT_PAREN);
+                ArrayList<Expression> arguments;
+                if (!matchCurrentToken(TokenType.RIGHT_PAREN)) arguments = parseArguments();
+                else arguments = new ArrayList<>();
+
+                expression = new CallExpression(expression, getCurrentToken(), arguments);
+                consumeToken(TokenType.RIGHT_PAREN);
+
+            } else{
+                consumeToken(TokenType.DOT);
+                Token token = getCurrentToken();
+                expression = new GetExpression(expression, token);
+                consumeToken(TokenType.IDENTIFIER);
+            }
         }
         return expression;
     }

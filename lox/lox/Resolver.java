@@ -183,6 +183,12 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
         return null;
     }
 
+    @Override
+    public Void visitGetExpression(GetExpression expr) {
+        resolve(expr.object);
+        return null;
+    }
+
     // Helper methods
 
     private void beginScope(){
