@@ -3,7 +3,7 @@ package lox.lox;
 import java.util.ArrayList;
 import lox.scanner.Token;
 
-public class LoxClass {
+public class LoxClass implements LoxCallable{
    
     private Token name;
     private ArrayList<Statement> methods;
@@ -15,6 +15,16 @@ public class LoxClass {
 
     @Override
     public String toString(){
-        return String.format("class < %s >", name.lexeme);
+        return String.format("<class %s>", name.lexeme);
+    }
+
+    @Override
+    public int arity() {
+        return 0;
+    }
+
+    @Override
+    public Object call(Interpreter interpreter, ArrayList<Object> arguments) {
+        return new LoxInstance(this);
     }
 }
