@@ -257,7 +257,7 @@ public class Parser {
         return parseAssignment();
     }
 
-    // assignment -> or | IDENTIFIER "=" assignment
+    // assignment -> or | (call ".")? IDENTIFIER "=" assignment
     private Expression parseAssignment(){
 
         Expression expr = parseOr();
@@ -266,6 +266,12 @@ public class Parser {
             consumeToken(TokenType.ASSIGNMENT);
             Expression expr2 = parseAssignment();
             return new AssignmentExpression(((VariableExpression) expr).name, expr2);
+
+        } else if (matchCurrentToken(TokenType.ASSIGNMENT) && expr instanceof GetExpression){
+            consumeToken(TokenType.ASSIGNMENT);
+            Expression expr2 = parseAssignment();
+            GetExpression expr1 = (GetExpression) expr;
+            return new SetExpression(expr1.object, expr1.name, expr2);
 
         } else if (matchCurrentToken(TokenType.ASSIGNMENT)){
             // error since invalid assignment target

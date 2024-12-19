@@ -269,6 +269,22 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     @Override
+    public Object visitSetExpression(SetExpression expr){
+
+        Object object = evaluate(expr.object);
+
+        if (object instanceof LoxInstance){
+            Object value = evaluate(expr.value);
+            ((LoxInstance) object).set(expr.name, value);
+            return value;
+
+        } else{
+            // Error since not an instance
+            throw Error.createRuntimeError(expr.name, "Cannot modify properties of a non-instance");
+        }
+    }
+
+    @Override
     public Object visitLiteralExpression(LiteralExpression expr) {
         return expr.value;
     }

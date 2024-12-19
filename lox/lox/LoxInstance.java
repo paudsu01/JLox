@@ -19,6 +19,10 @@ public class LoxInstance {
         return String.format("instance %s", loxClass);
     }
 
+    void set(Token name, Object value){
+        fields.put(name.lexeme, value);
+    }
+
     Object get(Token name){
         if (fields.containsKey(name.lexeme)) {
             return fields.get(name.lexeme);
