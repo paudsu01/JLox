@@ -75,6 +75,14 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     @Override
+    public Object visitClassStatement(ClassStatement stmt){
+        environment.define(stmt.name.lexeme, null);
+        LoxClass class_ = new LoxClass(stmt.name, stmt.methods);
+        environment.assign(stmt.name, class_);
+        return null;
+    }
+
+    @Override
     public Object visitVarDecStatement(VarDecStatement stmt) {
         Object value = null;
         if (stmt.initializer != null) value = evaluate(stmt.initializer);

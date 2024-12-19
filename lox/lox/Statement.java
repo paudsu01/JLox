@@ -91,11 +91,13 @@ class FunctionStatement extends Statement{
 	final Token name;
 	final ArrayList<Token> parameters;
 	final Statement body;
+	final FuncType type;
 
-	FunctionStatement(Token name, ArrayList<Token> parameters, Statement body){
+	FunctionStatement(Token name, ArrayList<Token> parameters, Statement body, FuncType type){
 		this.name = name;
 		this.parameters = parameters;
 		this.body = body;
+		this.type = type;
 	}
 
 	@Override
@@ -117,6 +119,20 @@ class ReturnStatement extends Statement{
 	 return visit.visitReturnStatement(this);}
 }
 
+class ClassStatement extends Statement{
+	final Token name;
+	final ArrayList<Statement> methods;
+
+	ClassStatement(Token name, ArrayList<Statement> methods){
+		this.name = name;
+		this.methods = methods;
+	}
+
+	@Override
+	<R> R accept(StatementVisitor<R> visit){
+	 return visit.visitClassStatement(this);}
+}
+
 
 interface StatementVisitor<R>{
 	R visitExpressionStatement(ExpressionStatement stmt);
@@ -127,4 +143,5 @@ interface StatementVisitor<R>{
 	R visitWhileStatement(WhileStatement stmt);
 	R visitFunctionStatement(FunctionStatement stmt);
 	R visitReturnStatement(ReturnStatement stmt);
+	R visitClassStatement(ClassStatement stmt);
 }

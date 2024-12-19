@@ -30,11 +30,12 @@ public class Parser {
 
     // Methods for grammar definitions
 
-    // declaration -> funDec | varDec | statement
+    // declaration -> funDec | varDec | classDec | statement
     private Statement parseDeclaration(){
        try{
             if (matchCurrentToken(TokenType.VAR)) return parseVarDeclaration();
             else if (matchCurrentToken(TokenType.FUN)) return parseFunctionDeclaration(); 
+            else if (matchCurrentToken(TokenType.CLASS)) return parseClassDeclaration(); 
             else return parseStatement(); 
        } catch (ParserError err){
             synchronize();
@@ -47,11 +48,28 @@ public class Parser {
     // funDec -> "fun" function
     private Statement parseFunctionDeclaration(){
         consumeToken(TokenType.FUN);
-        return parseFunction();
+        return parseFunction(FuncType.FUNCTION);
+    }
+
+    // classDec -> "class" IDENTIFIER "{" function* "}"
+    private Statement parseClassDeclaration(){
+        consumeToken(TokenType.CLASS);
+        Token className = getCurrentToken();
+        consumeToken(TokenType.IDENTIFIER);
+
+        consumeToken(TokenType.LEFT_BRACE);
+
+        ArrayList<Statement> methods = new ArrayList<>();
+        while ((! noMoreTokensToConsume()) && !matchCurrentToken(TokenType.RIGHT_BRACE)){
+            methods.add(parseFunction(FuncType.METHOD));
+        }
+
+        consumeToken(TokenType.RIGHT_BRACE);
+        return new ClassStatement(className, methods);
     }
     
     // function -> IDENTIFIER "(" parameters ? ")" blockStatement
-    private Statement parseFunction(){
+    private Statement parseFunction(FuncType type){
         Token funcName = getCurrentToken();
         consumeToken(TokenType.IDENTIFIER);
 
@@ -64,7 +82,8 @@ public class Parser {
         
         Statement blockStatement = parseBlockStatement();
 
-        return new FunctionStatement(funcName, parameters, blockStatement);
+        if (funcName.lexeme.equals("init") && type == FuncType.METHOD) type = FuncType.INIT;
+        return new FunctionStatement(funcName, parameters, blockStatement, type);
     }
 
     // parameters -> IDENTIFIER ("," IDENTIFIER)*

@@ -104,6 +104,18 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
         return null;
     }
 
+
+    @Override
+    public Void visitClassStatement(ClassStatement stmt) {
+        declare(stmt.name);
+        define(stmt.name);
+
+        for (Statement function: stmt.methods){
+            resolve(function);
+        }
+        return null; 
+    }
+
     @Override
     public Void visitReturnStatement(ReturnStatement stmt) {
         if (stmt.returnValue != null) resolve(stmt.returnValue);
