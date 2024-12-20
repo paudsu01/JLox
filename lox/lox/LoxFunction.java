@@ -35,6 +35,7 @@ class LoxFunction implements LoxCallable{
             return ret.returnValue;
         }
         interpreter.environment = environment;
+        if (type == FuncType.INIT) return closure.getThis();
         return null;
     }
 

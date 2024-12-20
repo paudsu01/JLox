@@ -54,6 +54,11 @@ public class Environment {
         return requiredEnvironment.get(token);
     }
 
+    // Only for "this"
+    Object getThis(){
+        return environment.get("this");
+    }
+
     private Environment getRequiredEnvironment(int depth){
         int currentDepth = depth;
         Environment requiredEnvironment = this;
