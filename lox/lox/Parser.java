@@ -7,6 +7,7 @@ import lox.scanner.Token;
 import lox.scanner.TokenType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Parser {
     
@@ -30,11 +31,12 @@ public class Parser {
 
     // Methods for grammar definitions
 
-    // declaration -> funDec | varDec | statement
+    // declaration -> funDec | varDec | classDec | statement
     private Statement parseDeclaration(){
        try{
             if (matchCurrentToken(TokenType.VAR)) return parseVarDeclaration();
             else if (matchCurrentToken(TokenType.FUN)) return parseFunctionDeclaration(); 
+            else if (matchCurrentToken(TokenType.CLASS)) return parseClassDeclaration(); 
             else return parseStatement(); 
        } catch (ParserError err){
             synchronize();
@@ -47,11 +49,29 @@ public class Parser {
     // funDec -> "fun" function
     private Statement parseFunctionDeclaration(){
         consumeToken(TokenType.FUN);
-        return parseFunction();
+        return parseFunction(FuncType.FUNCTION);
+    }
+
+    // classDec -> "class" IDENTIFIER "{" function* "}"
+    private Statement parseClassDeclaration(){
+        consumeToken(TokenType.CLASS);
+        Token className = getCurrentToken();
+        consumeToken(TokenType.IDENTIFIER);
+
+        consumeToken(TokenType.LEFT_BRACE);
+
+        ArrayList<FunctionStatement> methods = new ArrayList<>();
+        while ((! noMoreTokensToConsume()) && !matchCurrentToken(TokenType.RIGHT_BRACE)){
+            FunctionStatement function = (FunctionStatement) parseFunction(FuncType.METHOD);
+            methods.add(function);
+        }
+
+        consumeToken(TokenType.RIGHT_BRACE);
+        return new ClassStatement(className, methods);
     }
     
     // function -> IDENTIFIER "(" parameters ? ")" blockStatement
-    private Statement parseFunction(){
+    private Statement parseFunction(FuncType type){
         Token funcName = getCurrentToken();
         consumeToken(TokenType.IDENTIFIER);
 
@@ -64,7 +84,8 @@ public class Parser {
         
         Statement blockStatement = parseBlockStatement();
 
-        return new FunctionStatement(funcName, parameters, blockStatement);
+        if (funcName.lexeme.equals("init") && type == FuncType.METHOD) type = FuncType.INIT;
+        return new FunctionStatement(funcName, parameters, blockStatement, type);
     }
 
     // parameters -> IDENTIFIER ("," IDENTIFIER)*
@@ -238,7 +259,7 @@ public class Parser {
         return parseAssignment();
     }
 
-    // assignment -> or | IDENTIFIER "=" assignment
+    // assignment -> or | (call ".")? IDENTIFIER "=" assignment
     private Expression parseAssignment(){
 
         Expression expr = parseOr();
@@ -247,6 +268,12 @@ public class Parser {
             consumeToken(TokenType.ASSIGNMENT);
             Expression expr2 = parseAssignment();
             return new AssignmentExpression(((VariableExpression) expr).name, expr2);
+
+        } else if (matchCurrentToken(TokenType.ASSIGNMENT) && expr instanceof GetExpression){
+            consumeToken(TokenType.ASSIGNMENT);
+            Expression expr2 = parseAssignment();
+            GetExpression expr1 = (GetExpression) expr;
+            return new SetExpression(expr1.object, expr1.name, expr2);
 
         } else if (matchCurrentToken(TokenType.ASSIGNMENT)){
             // error since invalid assignment target
@@ -359,19 +386,28 @@ public class Parser {
         }
     }
 
-    // call -> primary ( "(" arguments ? ")" )* ;
+    // call -> primary ( ( "(" arguments ? ")" ) | ("." IDENTIFIER ))* ;
     private Expression parseCall(){
         Expression expression = parsePrimary();
 
-        while (matchCurrentToken(TokenType.LEFT_PAREN)){
-            consumeToken(TokenType.LEFT_PAREN);
+        while (matchCurrentToken(TokenType.LEFT_PAREN) || matchCurrentToken(TokenType.DOT)){
 
-            ArrayList<Expression> arguments;
-            if (!matchCurrentToken(TokenType.RIGHT_PAREN)) arguments = parseArguments();
-            else arguments = new ArrayList<>();
+            if (matchCurrentToken(TokenType.LEFT_PAREN)){
+                consumeToken(TokenType.LEFT_PAREN);
 
-            expression = new CallExpression(expression, getCurrentToken(), arguments);
-            consumeToken(TokenType.RIGHT_PAREN);
+                ArrayList<Expression> arguments;
+                if (!matchCurrentToken(TokenType.RIGHT_PAREN)) arguments = parseArguments();
+                else arguments = new ArrayList<>();
+
+                expression = new CallExpression(expression, getCurrentToken(), arguments);
+                consumeToken(TokenType.RIGHT_PAREN);
+
+            } else{
+                consumeToken(TokenType.DOT);
+                Token token = getCurrentToken();
+                expression = new GetExpression(expression, token);
+                consumeToken(TokenType.IDENTIFIER);
+            }
         }
         return expression;
     }
@@ -400,6 +436,8 @@ public class Parser {
                 return new LiteralExpression(false);
             case "nil":
                 return new LiteralExpression(null);
+            case "this":
+                return new ThisExpression(currentToken);
             case "(":
                 Expression expr = parseExpression();
                 // consume ")"

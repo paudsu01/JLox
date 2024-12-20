@@ -3,6 +3,8 @@ package lox.lox;
 import lox.scanner.Token;
 import lox.error.Error;
 
+import static lox.scanner.TokenType.values;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -104,6 +106,23 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
         return null;
     }
 
+
+    @Override
+    public Void visitClassStatement(ClassStatement stmt) {
+        declare(stmt.name);
+        define(stmt.name);
+
+        beginScope();
+        scopes.getLast().put("this", true);
+
+        for (FunctionStatement function: stmt.methods){
+            resolve(function);
+        }
+
+        endScope();
+        return null; 
+    }
+
     @Override
     public Void visitReturnStatement(ReturnStatement stmt) {
         if (stmt.returnValue != null) resolve(stmt.returnValue);
@@ -133,6 +152,12 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
 
     @Override
     public Void visitLiteralExpression(LiteralExpression expr) {
+        return null;
+    }
+
+    @Override
+    public Void visitThisExpression(ThisExpression expr) {
+        resolveLocalVariableUsage(expr, expr.keyword);
         return null;
     }
 
@@ -168,6 +193,19 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
         for (Expression argument : expr.arguments){
             resolve(argument);
         }
+        return null;
+    }
+
+    @Override
+    public Void visitGetExpression(GetExpression expr) {
+        resolve(expr.object);
+        return null;
+    }
+
+    @Override
+    public Void visitSetExpression(SetExpression expr) {
+        resolve(expr.object);
+        resolve(expr.value);
         return null;
     }
 

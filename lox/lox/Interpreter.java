@@ -15,7 +15,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     private final ArrayList<Statement> statements;
     Environment environment;
     final Environment globals;
-    final HashMap<Expression, Integer> locals = new HashMap<>();
+    static final HashMap<Expression, Integer> locals = new HashMap<>();
 
     public Interpreter(ArrayList<Statement> stmnts, Environment env){
         statements = stmnts;
@@ -69,8 +69,22 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     @Override
     public Object visitFunctionStatement(FunctionStatement stmt) {
-        LoxFunction function = new LoxFunction(stmt, environment);
+        LoxFunction function = new LoxFunction(stmt, environment, stmt.type);
         environment.define(stmt.name.lexeme, function);
+        return null;
+    }
+
+    @Override
+    public Object visitClassStatement(ClassStatement stmt){
+        environment.define(stmt.name.lexeme, null);
+
+        HashMap<String, LoxFunction> methods = new HashMap<>();
+        for (FunctionStatement funcStatement : stmt.methods){
+            methods.put(funcStatement.name.lexeme, new LoxFunction(funcStatement, environment, funcStatement.type));
+        }
+
+        LoxClass class_ = new LoxClass(stmt.name, methods);
+        environment.assign(stmt.name, class_);
         return null;
     }
 
@@ -100,12 +114,22 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     @Override
     public Object visitReturnStatement(ReturnStatement stmt){
         Object value = null;
-        if (stmt.returnValue != null) value = evaluate(stmt.returnValue);
+        boolean noReturnValue = true;
+        if (stmt.returnValue != null) {
+            value = evaluate(stmt.returnValue);
+            noReturnValue = false;
+        }
 
-        throw new Return(stmt.keyword, value);
+        throw new Return(stmt.keyword, value, noReturnValue);
     }
 
     // VISITOR PATTERN visit methods for expression
+
+    @Override
+    public Object visitThisExpression(ThisExpression expr){
+        if (locals.get(expr) != null) return environment.getAt(expr.keyword, locals.get(expr));
+        else throw Error.createRuntimeError(expr.keyword, "'this' keyword cannot be used outside of a class");
+    }
 
     @Override
     public Object visitVariableExpression(VariableExpression expr) {
@@ -232,12 +256,12 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         }
 
         Object callee = evaluate(expr.callee);
-        if (!(callee instanceof LoxCallable)) createRuntimeError(expr.closingParen, "Object is not callable");
+        if (!(callee instanceof LoxCallable)) throw Error.createRuntimeError(expr.closingParen, "Object is not callable");
 
         LoxCallable function = (LoxCallable) callee;
 
         if (function.arity() != arguments.size())
-            createRuntimeError(expr.closingParen, String.format("Expected %d argument(s), but got %d of them", function.arity(), arguments.size()));
+            throw Error.createRuntimeError(expr.closingParen, String.format("Expected %d argument(s), but got %d of them", function.arity(), arguments.size()));
 
         Object functionCall = null;
         try {
@@ -245,9 +269,35 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     
         } catch (NumberFormatException e) {
             // For "number" native function
-            throw createRuntimeError(expr.closingParen, "Cannot convert String to Number");
+            throw Error.createRuntimeError(expr.closingParen, "Cannot convert String to Number");
         }
         return functionCall;
+    }
+
+    @Override
+    public Object visitGetExpression(GetExpression expr){
+        Object object = evaluate(expr.object);
+        if (object instanceof LoxInstance){
+            return ((LoxInstance) object).get(expr.name);
+        }
+        // Error since not an instance
+        throw Error.createRuntimeError(expr.name, "Cannot access properties of a non-instance");
+    }
+
+    @Override
+    public Object visitSetExpression(SetExpression expr){
+
+        Object object = evaluate(expr.object);
+
+        if (object instanceof LoxInstance){
+            Object value = evaluate(expr.value);
+            ((LoxInstance) object).set(expr.name, value);
+            return value;
+
+        } else{
+            // Error since not an instance
+            throw Error.createRuntimeError(expr.name, "Cannot modify properties of a non-instance");
+        }
     }
 
     @Override
@@ -301,12 +351,6 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     private RuntimeError createOperandError(Token token, String message){
         RuntimeError err = new RuntimeError(token, message);
         Error.reportOperandError(err.token, err.message);
-        return err;
-    }
-
-    private RuntimeError createRuntimeError(Token token, String message){
-        RuntimeError err = new RuntimeError(token, message);
-        Error.reportRuntimeError(err);
         return err;
     }
 
