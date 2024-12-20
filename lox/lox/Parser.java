@@ -436,6 +436,8 @@ public class Parser {
                 return new LiteralExpression(false);
             case "nil":
                 return new LiteralExpression(null);
+            case "this":
+                return new ThisExpression(currentToken);
             case "(":
                 Expression expr = parseExpression();
                 // consume ")"

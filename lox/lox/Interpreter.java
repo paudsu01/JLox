@@ -15,7 +15,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     private final ArrayList<Statement> statements;
     Environment environment;
     final Environment globals;
-    final HashMap<Expression, Integer> locals = new HashMap<>();
+    static final HashMap<Expression, Integer> locals = new HashMap<>();
 
     public Interpreter(ArrayList<Statement> stmnts, Environment env){
         statements = stmnts;
@@ -120,6 +120,12 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     // VISITOR PATTERN visit methods for expression
+
+    @Override
+    public Object visitThisExpression(ThisExpression expr){
+        if (locals.get(expr) != null) return environment.getAt(expr.keyword, locals.get(expr));
+        else throw Error.createRuntimeError(expr.keyword, "'this' keyword cannot be used outside of a class");
+    }
 
     @Override
     public Object visitVariableExpression(VariableExpression expr) {

@@ -112,9 +112,14 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
         declare(stmt.name);
         define(stmt.name);
 
+        beginScope();
+        scopes.getLast().put("this", true);
+
         for (FunctionStatement function: stmt.methods){
             resolve(function);
         }
+
+        endScope();
         return null; 
     }
 
@@ -147,6 +152,12 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
 
     @Override
     public Void visitLiteralExpression(LiteralExpression expr) {
+        return null;
+    }
+
+    @Override
+    public Void visitThisExpression(ThisExpression expr) {
+        resolveLocalVariableUsage(expr, expr.keyword);
         return null;
     }
 

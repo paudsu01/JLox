@@ -149,6 +149,18 @@ class SetExpression extends Expression{
 	 return visit.visitSetExpression(this);}
 }
 
+class ThisExpression extends Expression{
+	final Token keyword;
+
+	ThisExpression(Token keyword){
+		this.keyword = keyword;
+	}
+
+	@Override
+	<R> R accept(ExpressionVisitor<R> visit){
+	 return visit.visitThisExpression(this);}
+}
+
 
 interface ExpressionVisitor<R>{
 	R visitBinaryExpression(BinaryExpression expr);
@@ -161,4 +173,5 @@ interface ExpressionVisitor<R>{
 	R visitCallExpression(CallExpression expr);
 	R visitGetExpression(GetExpression expr);
 	R visitSetExpression(SetExpression expr);
+	R visitThisExpression(ThisExpression expr);
 }
