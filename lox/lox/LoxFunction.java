@@ -2,6 +2,7 @@ package lox.lox;
 
 import java.util.ArrayList;
 import lox.error.Return;
+import lox.error.Error;
 
 class LoxFunction implements LoxCallable{
 
@@ -30,10 +31,18 @@ class LoxFunction implements LoxCallable{
         }
         try {
             interpreter.visitBlockStatement((BlockStatement) function.body);
+
         } catch (Return ret) {
             interpreter.environment = environment;
-            return ret.returnValue;
+
+            if (type == FuncType.INIT){
+
+                if (! ret.noReturnValue && ret.returnValue != closure.getThis()) throw Error.createRuntimeError(ret.token, "Cannot return this kind of value from init method");
+                return closure.getThis();
+
+            } else return ret.returnValue;
         }
+
         interpreter.environment = environment;
         if (type == FuncType.INIT) return closure.getThis();
         return null;

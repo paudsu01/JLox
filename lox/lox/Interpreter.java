@@ -114,9 +114,13 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     @Override
     public Object visitReturnStatement(ReturnStatement stmt){
         Object value = null;
-        if (stmt.returnValue != null) value = evaluate(stmt.returnValue);
+        boolean noReturnValue = true;
+        if (stmt.returnValue != null) {
+            value = evaluate(stmt.returnValue);
+            noReturnValue = false;
+        }
 
-        throw new Return(stmt.keyword, value);
+        throw new Return(stmt.keyword, value, noReturnValue);
     }
 
     // VISITOR PATTERN visit methods for expression
