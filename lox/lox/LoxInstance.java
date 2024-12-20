@@ -2,7 +2,6 @@ package lox.lox;
 
 import java.util.HashMap;
 
-import lox.error.RuntimeError;
 import lox.error.Error;
 import lox.scanner.Token;
 
@@ -29,7 +28,7 @@ public class LoxInstance {
             return fields.get(name.lexeme);
         
         } else if (loxClass.methods.containsKey(name.lexeme)){
-            LoxFunction method = loxClass.methods.get(name.lexeme);
+            LoxFunction method = loxClass.findMethod(name.lexeme);
             return method.bind(this);
         } else {
             throw Error.createRuntimeError(name, "Undefined field");
