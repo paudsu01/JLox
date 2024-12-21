@@ -1,0 +1,29 @@
+class Student{
+
+	init(name, age){
+		this.name = name;
+		this.age = age;
+	}
+
+	toString(){
+		return "<Student: " + this.name + ", " + this.age + " >";
+	}
+}
+
+fun show_info(){
+
+	print supreme.toString();
+	print anna.toString();
+}
+
+var anna = Student("Anna", 20);
+var supreme = Student("Supreme", 20);
+
+show_info();
+
+supreme.age = 21;
+
+print "";
+print "Updating age for Supreme";
+
+show_info();

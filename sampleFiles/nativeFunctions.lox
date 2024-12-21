@@ -1,0 +1,16 @@
+// The following program takes number(input) from the user and adds current time to it
+
+print "Hi, what's your name?";
+
+// "input" native function used
+var x = input();
+
+print "Input a number: ";
+var y = input();
+
+// "number" native function used; raises error if x cannot be converted to number
+var numY = number(y);
+
+// "clock" native function used
+print "Hey " + x + ", Your input + the current time: ";
+print numY + clock();
