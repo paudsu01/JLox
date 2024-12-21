@@ -37,6 +37,20 @@ java -jar Lox.jar
 ```
 java -jar Lox.jar file.lox
 ```
+> You can also download some sample `.lox` files from the [sampleFiles/](sampleFiles/) directory and run them.
+
+### Running the interpreter from anywhere in the terminal
+
+* I would suggest adding an alias from the terminal to run the `Lox.jar` file such as
+  
+  ```
+  alias jlox="java -jar path/to/Lox.jar"
+  ```
+
+  > You can now just type use `jlox` to use the interpreter for the remaining terminal session.
+
+* If you want to add a permanent alias, you can add the command to your shell config file such as `~/.bashrc` file.
+  
 ## TODO
 * Add support for static methods
 * Add support for inheritance
