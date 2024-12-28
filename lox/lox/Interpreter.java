@@ -84,6 +84,8 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
             if (!(superclass instanceof LoxClass)){
                 throw Error.createRuntimeError(stmt.name, "superclass has to be a class");
             }
+            environment = new Environment(environment);
+            environment.define("super", superclass);
         }
 
         HashMap<String, LoxFunction> methods = new HashMap<>();
@@ -92,6 +94,9 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         }
 
         LoxClass class_ = new LoxClass(stmt.name, (LoxClass) superclass, methods);
+        
+        if (superclass != null) environment = environment.superEnvironment;
+
         environment.assign(stmt.name, class_);
         return null;
     }
@@ -137,6 +142,17 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Object visitThisExpression(ThisExpression expr){
         if (locals.get(expr) != null) return environment.getAt(expr.keyword, locals.get(expr));
         else throw Error.createRuntimeError(expr.keyword, "'this' keyword cannot be used outside of a class");
+    }
+
+    @Override
+    public Object visitSuperExpression(SuperExpression expr){
+        LoxClass superclass = (LoxClass) environment.getAt(expr.keyword, locals.get(expr));
+        LoxInstance instance = (LoxInstance) environment.getThis();
+
+        LoxFunction method = superclass.findMethod(expr.method.lexeme);
+        if (method == null) throw Error.createRuntimeError(expr.keyword, String.format("Undefined method name `%s` of superclass", expr.method.lexeme));
+
+        return method.bind(instance);
     }
 
     @Override

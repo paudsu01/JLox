@@ -110,6 +110,11 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
         declare(stmt.name);
         define(stmt.name);
 
+        if (stmt.superclass != null){
+            beginScope();
+            scopes.getLast().put("super", true);
+        }
+
         beginScope();
         scopes.getLast().put("this", true);
 
@@ -124,6 +129,11 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
         }
 
         endScope();
+
+        if (stmt.superclass != null){
+            endScope();
+        }
+
         return null; 
     }
 
@@ -161,6 +171,12 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
 
     @Override
     public Void visitThisExpression(ThisExpression expr) {
+        resolveLocalVariableUsage(expr, expr.keyword);
+        return null;
+    }
+
+    @Override
+    public Void visitSuperExpression(SuperExpression expr) {
         resolveLocalVariableUsage(expr, expr.keyword);
         return null;
     }
