@@ -134,6 +134,10 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
             resolve(function);
         }
 
+        for (FunctionStatement function: stmt.staticMethods){
+            resolve(function);
+        }
+
         endScope();
 
         if (stmt.superclass != null){

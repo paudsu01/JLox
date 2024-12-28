@@ -9,12 +9,14 @@ public class LoxClass implements LoxCallable{
    
     private Token name;
     HashMap<String,LoxFunction> methods;
+    HashMap<String,LoxFunction> staticMethods;
     LoxClass superclass;
 
-    LoxClass(Token name, LoxClass superclass, HashMap<String,LoxFunction> methods){
+    LoxClass(Token name, LoxClass superclass, HashMap<String,LoxFunction> methods, HashMap<String,LoxFunction> staticMethods){
         this.superclass = superclass;
         this.name = name;
         this.methods = methods;
+        this.staticMethods = staticMethods;
     }
 
     @Override
@@ -42,6 +44,15 @@ public class LoxClass implements LoxCallable{
             return methods.get(name);
         } else
             if (superclass != null) return superclass.findMethod(name);
+
+        return null;
+    }
+
+    LoxFunction findStaticMethod(String name){
+        if (staticMethods.containsKey(name)){
+            return staticMethods.get(name);
+        } else
+            if (superclass != null) return superclass.findStaticMethod(name);
 
         return null;
     }
