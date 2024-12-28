@@ -81,9 +81,9 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         Object superclass = null;
         if (stmt.superclass != null){
             superclass = evaluate(stmt.superclass);
-            if (!(superclass instanceof LoxClass)){
-                throw Error.createRuntimeError(stmt.name, "superclass has to be a class");
-            }
+
+            if (!(superclass instanceof LoxClass)) throw Error.createRuntimeError(stmt.name, "superclass has to be a class");
+
             environment = new Environment(environment);
             environment.define("super", superclass);
         }
