@@ -78,6 +78,13 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Object visitClassStatement(ClassStatement stmt){
         environment.define(stmt.name.lexeme, null);
 
+        if (stmt.superclass != null){
+            Object superclass = evaluate(stmt.superclass);
+            if (!(superclass instanceof LoxClass)){
+                throw Error.createRuntimeError(stmt.name, "superclass has to be a class");
+            }
+        }
+
         HashMap<String, LoxFunction> methods = new HashMap<>();
         for (FunctionStatement funcStatement : stmt.methods){
             methods.put(funcStatement.name.lexeme, new LoxFunction(funcStatement, environment, funcStatement.type));

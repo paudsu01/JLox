@@ -115,6 +115,12 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
         beginScope();
         scopes.getLast().put("this", true);
 
+        if (stmt.superclass != null) {
+            // cannot inherit from itself
+            if (stmt.superclass.name.lexeme.equals(stmt.name.lexeme)) Error.reportResolverError(stmt.name, "Class cannot inherit from itself.");
+            resolve(stmt.superclass);
+        }
+
         for (FunctionStatement function: stmt.methods){
             resolve(function);
         }
