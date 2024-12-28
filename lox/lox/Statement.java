@@ -123,11 +123,13 @@ class ClassStatement extends Statement{
 	final Token name;
 	final VariableExpression superclass;
 	final ArrayList<FunctionStatement> methods;
+	final ArrayList<FunctionStatement> staticMethods;
 
-	ClassStatement(Token name, VariableExpression superclass, ArrayList<FunctionStatement> methods){
+	ClassStatement(Token name, VariableExpression superclass, ArrayList<FunctionStatement> methods, ArrayList<FunctionStatement> staticMethods){
 		this.name = name;
 		this.superclass = superclass;
 		this.methods = methods;
+		this.staticMethods = staticMethods;
 	}
 
 	@Override
