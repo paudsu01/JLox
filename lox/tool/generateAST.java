@@ -39,7 +39,7 @@ public class generateAST{
         stmtClassesToFields.put(stmtClasses[5], "Expression expr:Statement statement");
         stmtClassesToFields.put(stmtClasses[6], "Token name:ArrayList<Token> parameters:Statement body:FuncType type");
         stmtClassesToFields.put(stmtClasses[7], "Token keyword:Expression returnValue");
-        stmtClassesToFields.put(stmtClasses[8], "Token name:ArrayList<FunctionStatement> methods");
+        stmtClassesToFields.put(stmtClasses[8], "Token name:VariableExpression superclass:ArrayList<FunctionStatement> methods");
 
         // Generate files Expression.java and Statement.java
         String packageName = "lox.lox";

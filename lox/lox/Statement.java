@@ -121,10 +121,12 @@ class ReturnStatement extends Statement{
 
 class ClassStatement extends Statement{
 	final Token name;
+	final VariableExpression superclass;
 	final ArrayList<FunctionStatement> methods;
 
-	ClassStatement(Token name, ArrayList<FunctionStatement> methods){
+	ClassStatement(Token name, VariableExpression superclass, ArrayList<FunctionStatement> methods){
 		this.name = name;
+		this.superclass = superclass;
 		this.methods = methods;
 	}
 
