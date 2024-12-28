@@ -161,6 +161,20 @@ class ThisExpression extends Expression{
 	 return visit.visitThisExpression(this);}
 }
 
+class SuperExpression extends Expression{
+	final Token keyword;
+	final Token method;
+
+	SuperExpression(Token keyword, Token method){
+		this.keyword = keyword;
+		this.method = method;
+	}
+
+	@Override
+	<R> R accept(ExpressionVisitor<R> visit){
+	 return visit.visitSuperExpression(this);}
+}
+
 
 interface ExpressionVisitor<R>{
 	R visitBinaryExpression(BinaryExpression expr);
@@ -174,4 +188,5 @@ interface ExpressionVisitor<R>{
 	R visitGetExpression(GetExpression expr);
 	R visitSetExpression(SetExpression expr);
 	R visitThisExpression(ThisExpression expr);
+	R visitSuperExpression(SuperExpression expr);
 }

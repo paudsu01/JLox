@@ -13,7 +13,7 @@ public class generateAST{
         }
 
         // Define the classes and their fields for the output file for Expression.java
-        String [] exprClasses = {"Binary", "Unary", "Grouping", "Literal", "Variable", "Assignment", "Logical", "Call", "Get", "Set", "This"};
+        String [] exprClasses = {"Binary", "Unary", "Grouping", "Literal", "Variable", "Assignment", "Logical", "Call", "Get", "Set", "This", "Super"};
         HashMap<String, String> exprClassesToFields = new HashMap<>();
         exprClassesToFields.put(exprClasses[0], "Expression left:Token operator:Expression right");
         exprClassesToFields.put(exprClasses[1], "Token operator:Expression expression");
@@ -26,6 +26,7 @@ public class generateAST{
         exprClassesToFields.put(exprClasses[8], "Expression object:Token name");
         exprClassesToFields.put(exprClasses[9], "Expression object:Token name:Expression value");
         exprClassesToFields.put(exprClasses[10], "Token keyword");
+        exprClassesToFields.put(exprClasses[11], "Token keyword:Token method");
 
 
         // Define the classes and their fields for the output file for Statement.java
@@ -39,7 +40,7 @@ public class generateAST{
         stmtClassesToFields.put(stmtClasses[5], "Expression expr:Statement statement");
         stmtClassesToFields.put(stmtClasses[6], "Token name:ArrayList<Token> parameters:Statement body:FuncType type");
         stmtClassesToFields.put(stmtClasses[7], "Token keyword:Expression returnValue");
-        stmtClassesToFields.put(stmtClasses[8], "Token name:ArrayList<FunctionStatement> methods");
+        stmtClassesToFields.put(stmtClasses[8], "Token name:VariableExpression superclass:ArrayList<FunctionStatement> methods");
 
         // Generate files Expression.java and Statement.java
         String packageName = "lox.lox";

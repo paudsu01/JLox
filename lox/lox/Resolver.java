@@ -3,8 +3,6 @@ package lox.lox;
 import lox.scanner.Token;
 import lox.error.Error;
 
-import static lox.scanner.TokenType.values;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -13,6 +11,7 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
 
     private Interpreter interpreter;
     private ArrayList<Statement> statements;
+    private ClassType currentClassScope = ClassType.NONE;
     private LinkedList<HashMap<String, Boolean>> scopes = new LinkedList<>();
 
     // Constructor
@@ -109,17 +108,39 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
 
     @Override
     public Void visitClassStatement(ClassStatement stmt) {
+
+        ClassType previous = currentClassScope;
+        currentClassScope = ClassType.CLASS;
+
         declare(stmt.name);
         define(stmt.name);
 
+        if (stmt.superclass != null){
+            currentClassScope = ClassType.SUBCLASS;
+            beginScope();
+            scopes.getLast().put("super", true);
+        }
+
         beginScope();
         scopes.getLast().put("this", true);
+
+        if (stmt.superclass != null) {
+            // cannot inherit from itself
+            if (stmt.superclass.name.lexeme.equals(stmt.name.lexeme)) Error.reportResolverError(stmt.name, "Class cannot inherit from itself.");
+            resolve(stmt.superclass);
+        }
 
         for (FunctionStatement function: stmt.methods){
             resolve(function);
         }
 
         endScope();
+
+        if (stmt.superclass != null){
+            endScope();
+        }
+
+        currentClassScope = previous;
         return null; 
     }
 
@@ -158,6 +179,16 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
     @Override
     public Void visitThisExpression(ThisExpression expr) {
         resolveLocalVariableUsage(expr, expr.keyword);
+        return null;
+    }
+
+    @Override
+    public Void visitSuperExpression(SuperExpression expr) {
+        if (currentClassScope == ClassType.NONE){
+            Error.reportResolverError(expr.keyword, "Cannot use `super` outside of a class");
+       } else if (currentClassScope == ClassType.CLASS){
+            Error.reportResolverError(expr.keyword, "Cannot use `super` in a class with no superclass");
+       } else resolveLocalVariableUsage(expr, expr.keyword);
         return null;
     }
 

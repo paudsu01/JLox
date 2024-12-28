@@ -7,7 +7,6 @@ import lox.scanner.Token;
 import lox.scanner.TokenType;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class Parser {
     
@@ -52,11 +51,18 @@ public class Parser {
         return parseFunction(FuncType.FUNCTION);
     }
 
-    // classDec -> "class" IDENTIFIER "{" function* "}"
+    // classDec -> "class" IDENTIFIER ( < IDENTIFIER ) ? "{" function* "}"
     private Statement parseClassDeclaration(){
         consumeToken(TokenType.CLASS);
         Token className = getCurrentToken();
         consumeToken(TokenType.IDENTIFIER);
+
+        VariableExpression superclass = null;
+        if (matchCurrentToken(TokenType.LT)){
+            consumeToken(TokenType.LT);
+            superclass = new VariableExpression(getCurrentToken());
+            consumeToken(TokenType.IDENTIFIER, "Expect superclass name");
+        }
 
         consumeToken(TokenType.LEFT_BRACE);
 
@@ -67,7 +73,7 @@ public class Parser {
         }
 
         consumeToken(TokenType.RIGHT_BRACE);
-        return new ClassStatement(className, methods);
+        return new ClassStatement(className, superclass, methods);
     }
     
     // function -> IDENTIFIER "(" parameters ? ")" blockStatement
@@ -425,7 +431,7 @@ public class Parser {
         return arguments;
     }
 
-    // primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
+    // primary -> NUMBER | STRING | IDENTIFIER | "true" | "false" | "nil" | "(" expression ")" | "super" "." IDENTIFIER ;
     private Expression parsePrimary() {
         Token currentToken = getCurrentToken();
         consumeToken();
@@ -443,6 +449,12 @@ public class Parser {
                 // consume ")"
                 consumeToken(TokenType.RIGHT_PAREN);
                 return new GroupingExpression(expr);
+            case "super":
+                consumeToken(TokenType.DOT, "'.' expected after super keyword");
+                Token method = getCurrentToken();
+                consumeToken(TokenType.IDENTIFIER, "Superclass method name expected");
+                return new SuperExpression(currentToken, method);
+
             default:
                 if (currentToken.type == TokenType.NUMBER || currentToken.type == TokenType.STRING){
                     return new LiteralExpression(currentToken.value);
@@ -481,13 +493,16 @@ public class Parser {
     }
 
     private void consumeToken(TokenType tokenType){
+        consumeToken(tokenType, String.format("Expected %s", tokenType));
+    }
+
+    private void consumeToken(TokenType tokenType, String message){
         if (getCurrentToken().type == tokenType) {
             consumeToken();
         } else {
-            reportParserError(getCurrentToken(), String.format("Expected %s", tokenType));
+            reportParserError(getCurrentToken(), message);
         }
     }
-
     // Error Handling methods 
 
     private void reportParserError(Token token, String message){
