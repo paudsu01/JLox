@@ -431,7 +431,7 @@ public class Parser {
         return arguments;
     }
 
-    // primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
+    // primary -> NUMBER | STRING | IDENTIFIER | "true" | "false" | "nil" | "(" expression ")" | "super" "." IDENTIFIER ;
     private Expression parsePrimary() {
         Token currentToken = getCurrentToken();
         consumeToken();
@@ -449,6 +449,12 @@ public class Parser {
                 // consume ")"
                 consumeToken(TokenType.RIGHT_PAREN);
                 return new GroupingExpression(expr);
+            case "super":
+                consumeToken(TokenType.DOT, "'.' expected after super keyword");
+                Token method = getCurrentToken();
+                consumeToken(TokenType.IDENTIFIER, "Superclass method name expected");
+                return new SuperExpression(currentToken, method);
+
             default:
                 if (currentToken.type == TokenType.NUMBER || currentToken.type == TokenType.STRING){
                     return new LiteralExpression(currentToken.value);

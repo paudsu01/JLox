@@ -13,7 +13,7 @@ public class generateAST{
         }
 
         // Define the classes and their fields for the output file for Expression.java
-        String [] exprClasses = {"Binary", "Unary", "Grouping", "Literal", "Variable", "Assignment", "Logical", "Call", "Get", "Set", "This"};
+        String [] exprClasses = {"Binary", "Unary", "Grouping", "Literal", "Variable", "Assignment", "Logical", "Call", "Get", "Set", "This", "Super"};
         HashMap<String, String> exprClassesToFields = new HashMap<>();
         exprClassesToFields.put(exprClasses[0], "Expression left:Token operator:Expression right");
         exprClassesToFields.put(exprClasses[1], "Token operator:Expression expression");
@@ -26,6 +26,7 @@ public class generateAST{
         exprClassesToFields.put(exprClasses[8], "Expression object:Token name");
         exprClassesToFields.put(exprClasses[9], "Expression object:Token name:Expression value");
         exprClassesToFields.put(exprClasses[10], "Token keyword");
+        exprClassesToFields.put(exprClasses[11], "Token keyword:Token method");
 
 
         // Define the classes and their fields for the output file for Statement.java
