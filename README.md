@@ -53,10 +53,3 @@ java -jar Lox.jar file.lox
   
 ## TODO
 * Add support for static methods
-* Add support for inheritance
-
-
-
-
-
-

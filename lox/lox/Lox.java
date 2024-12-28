@@ -33,7 +33,7 @@ public class Lox{
         Scanner scanner = new Scanner(System.in);
         String user_input;
 
-        System.out.println("Jlox Interpreter v2.0.0. Type 'exit' to exit the interpreter.");
+        System.out.println("Jlox Interpreter v2.1.0. Type 'exit' to exit the interpreter.");
         Environment env = new Environment();
 
         while (true){
