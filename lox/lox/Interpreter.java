@@ -78,8 +78,9 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     public Object visitClassStatement(ClassStatement stmt){
         environment.define(stmt.name.lexeme, null);
 
+        Object superclass = null;
         if (stmt.superclass != null){
-            Object superclass = evaluate(stmt.superclass);
+            superclass = evaluate(stmt.superclass);
             if (!(superclass instanceof LoxClass)){
                 throw Error.createRuntimeError(stmt.name, "superclass has to be a class");
             }
@@ -90,7 +91,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
             methods.put(funcStatement.name.lexeme, new LoxFunction(funcStatement, environment, funcStatement.type));
         }
 
-        LoxClass class_ = new LoxClass(stmt.name, methods);
+        LoxClass class_ = new LoxClass(stmt.name, (LoxClass) superclass, methods);
         environment.assign(stmt.name, class_);
         return null;
     }
@@ -403,6 +404,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
                 @Override
                 public int arity(){ return 0; }
 
+                @SuppressWarnings("all")
                 @Override
                 public Object call(Interpreter interpreter, ArrayList<Object> arguments) {
                     Scanner scanner = new Scanner(System.in);

@@ -3,8 +3,6 @@ package lox.lox;
 import lox.scanner.Token;
 import lox.error.Error;
 
-import static lox.scanner.TokenType.values;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;

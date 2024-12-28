@@ -9,8 +9,10 @@ public class LoxClass implements LoxCallable{
    
     private Token name;
     HashMap<String,LoxFunction> methods;
+    LoxClass superclass;
 
-    LoxClass(Token name, HashMap<String,LoxFunction> methods){
+    LoxClass(Token name, LoxClass superclass, HashMap<String,LoxFunction> methods){
+        this.superclass = superclass;
         this.name = name;
         this.methods = methods;
     }
@@ -38,7 +40,9 @@ public class LoxClass implements LoxCallable{
     LoxFunction findMethod(String name){
         if (methods.containsKey(name)){
             return methods.get(name);
-        }
+        } else
+            if (superclass != null) return superclass.findMethod(name);
+
         return null;
     }
 }

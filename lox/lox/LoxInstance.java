@@ -27,11 +27,10 @@ public class LoxInstance {
         if (fields.containsKey(name.lexeme)) {
             return fields.get(name.lexeme);
         
-        } else if (loxClass.methods.containsKey(name.lexeme)){
-            LoxFunction method = loxClass.findMethod(name.lexeme);
-            return method.bind(this);
         } else {
-            throw Error.createRuntimeError(name, "Undefined field");
+                LoxFunction method = loxClass.findMethod(name.lexeme);
+                if (method != null) return method.bind(this);
+                else throw Error.createRuntimeError(name, "Undefined field");
         }
     }
 }

@@ -7,7 +7,6 @@ import lox.scanner.Token;
 import lox.scanner.TokenType;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class Parser {
     
