@@ -51,7 +51,7 @@ public class Parser {
         return parseFunction(FuncType.FUNCTION);
     }
 
-    // classDec -> "class" IDENTIFIER ( < IDENTIFIER ) ? "{" function* "}"
+    // classDec -> "class" IDENTIFIER ( < IDENTIFIER ) ? "{" classFunction* "}"
     private Statement parseClassDeclaration(){
         consumeToken(TokenType.CLASS);
         Token className = getCurrentToken();
@@ -67,15 +67,29 @@ public class Parser {
         consumeToken(TokenType.LEFT_BRACE);
 
         ArrayList<FunctionStatement> methods = new ArrayList<>();
+        ArrayList<FunctionStatement> staticMethods = new ArrayList<>();
         while ((! noMoreTokensToConsume()) && !matchCurrentToken(TokenType.RIGHT_BRACE)){
-            FunctionStatement function = (FunctionStatement) parseFunction(FuncType.METHOD);
-            methods.add(function);
+
+            FunctionStatement function = (FunctionStatement) parseClassFunction();
+
+            if (function.type == FuncType.STATIC) staticMethods.add(function);
+            else methods.add(function);
         }
 
         consumeToken(TokenType.RIGHT_BRACE);
-        return new ClassStatement(className, superclass, methods);
+        return new ClassStatement(className, superclass, methods, staticMethods);
     }
     
+    // classFunction -> function | "static" function ;
+    private Statement parseClassFunction(){
+        if (matchCurrentToken(TokenType.STATIC)){
+            consumeToken();
+            return parseFunction(FuncType.STATIC);
+        } else {
+            return parseFunction(FuncType.METHOD);
+        }
+    }
+
     // function -> IDENTIFIER "(" parameters ? ")" blockStatement
     private Statement parseFunction(FuncType type){
         Token funcName = getCurrentToken();

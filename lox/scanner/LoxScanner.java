@@ -34,7 +34,7 @@ public class LoxScanner{
         keywordToTokenType.put("true", TRUE);
         keywordToTokenType.put("false", FALSE);
         keywordToTokenType.put("nil", NIL);
-
+        keywordToTokenType.put("static", STATIC);
     }
 
     public LoxScanner(String LoxCode){

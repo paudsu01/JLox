@@ -93,7 +93,12 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
             methods.put(funcStatement.name.lexeme, new LoxFunction(funcStatement, environment, funcStatement.type));
         }
 
-        LoxClass class_ = new LoxClass(stmt.name, (LoxClass) superclass, methods);
+        HashMap<String, LoxFunction> staticMethods = new HashMap<>();
+        for (FunctionStatement funcStatement : stmt.staticMethods){
+            staticMethods.put(funcStatement.name.lexeme, new LoxFunction(funcStatement, environment, funcStatement.type));
+        }
+
+        LoxClass class_ = new LoxClass(stmt.name, (LoxClass) superclass, methods, staticMethods);
         
         if (superclass != null) environment = environment.superEnvironment;
 
@@ -303,7 +308,12 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         Object object = evaluate(expr.object);
         if (object instanceof LoxInstance){
             return ((LoxInstance) object).get(expr.name);
-        }
+
+        } else if (object instanceof LoxClass){
+            LoxFunction staticMethod =  ((LoxClass) object).findStaticMethod(expr.name.lexeme);
+            if (staticMethod == null) throw Error.createRuntimeError(expr.name, "Undefined static method");
+            else return staticMethod;
+        } 
         // Error since not an instance
         throw Error.createRuntimeError(expr.name, "Cannot access properties of a non-instance");
     }
