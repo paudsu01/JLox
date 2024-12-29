@@ -12,5 +12,7 @@ var y = input();
 var numY = number(y);
 
 // "clock" native function used
-print "Hey " + x + ", Your input + the current time: ";
-print numY + clock();
+print "Hey " + x + ", the current time: ";
+print clock();
+print "Hey " + x + ", your input + 5: ";
+print numY + 5;

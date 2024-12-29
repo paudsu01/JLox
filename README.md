@@ -18,6 +18,8 @@ While most of my implementation follows the guidelines for the Lox language, the
   > `clock`: Calling this native function will return the current time in seconds.<br>
   > `number`: Calling this native function will convert the argument provided to number, if possible.
 * String and number concatenation
+* Static methods for classes
+> Check [sampleFiles/staticMethods.lox](sampleFiles/staticMethods.lox) file to check out how static methods work in Jlox<sup>*</sup>.
 
 ## Installation guide:
 
@@ -50,6 +52,3 @@ java -jar Lox.jar file.lox
   > You can now just type use `jlox` to use the interpreter for the remaining terminal session.
 
 * If you want to add a permanent alias, you can add the command to your shell config file such as `~/.bashrc` file.
-  
-## TODO
-* Add support for static methods
