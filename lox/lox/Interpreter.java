@@ -89,10 +89,13 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         }
 
         HashMap<String, LoxFunction> methods = new HashMap<>();
-        HashMap<String, LoxFunction> staticMethods = new HashMap<>();
         for (FunctionStatement funcStatement : stmt.methods){
-            if (funcStatement.type == FuncType.STATIC) staticMethods.put(funcStatement.name.lexeme, new LoxFunction(funcStatement, environment, funcStatement.type));
-            else methods.put(funcStatement.name.lexeme, new LoxFunction(funcStatement, environment, funcStatement.type));
+            methods.put(funcStatement.name.lexeme, new LoxFunction(funcStatement, environment, funcStatement.type));
+        }
+
+        HashMap<String, LoxFunction> staticMethods = new HashMap<>();
+        for (FunctionStatement funcStatement : stmt.staticMethods){
+            staticMethods.put(funcStatement.name.lexeme, new LoxFunction(funcStatement, environment, funcStatement.type));
         }
 
         LoxClass class_ = new LoxClass(stmt.name, (LoxClass) superclass, methods, staticMethods);
