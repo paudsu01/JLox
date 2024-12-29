@@ -1,0 +1,51 @@
+// Shows use of Static methods in Jlox*
+// Cannot use `super` and `this` inside static methods
+
+// Run from base directory using "java -jar Lox.jar sampleFiles/staticMethods.lox"
+
+class A {
+	
+	init(){
+		this.name = "Instance of A";
+	}
+
+	// Start a method name with "static" to declare a static method.
+	static sayHi(){
+		print "HI";
+	}
+
+	static sayHiHi(){
+		print "HI,HI";
+	}
+}
+
+// Use static method with the class like this:
+
+print "Calling static method with the class itself : ";
+A.sayHi();
+
+
+// Use static method with instances of the class:
+
+print "";
+print "Calling static method with an instance of the class itself : ";
+A().sayHiHi();
+
+
+// static methods are also inherited by the subclass and its objects
+// B is a subclass of A
+
+class B < A {
+
+}
+
+print "";
+print "Calling static method with the subclass: ";
+
+B.sayHiHi();
+
+print "";
+print "Calling static method with an instance of the subclass: ";
+
+B().sayHiHi();
+
