@@ -30,6 +30,9 @@ public class LoxInstance {
         } else {
                 LoxFunction method = loxClass.findMethod(name.lexeme);
                 if (method != null) return method.bind(this);
+
+                method = loxClass.findStaticMethod(name.lexeme);
+                if (method != null) return method;
                 else throw Error.createRuntimeError(name, "Undefined field");
         }
     }

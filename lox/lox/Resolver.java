@@ -12,6 +12,7 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
     private Interpreter interpreter;
     private ArrayList<Statement> statements;
     private ClassType currentClassScope = ClassType.NONE;
+    private FuncType currentFuncScope = FuncType.NONE;
     private LinkedList<HashMap<String, Boolean>> scopes = new LinkedList<>();
 
     // Constructor
@@ -90,6 +91,8 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
 
     @Override
     public Void visitFunctionStatement(FunctionStatement stmt) {
+        FuncType previous = currentFuncScope;
+        currentFuncScope = stmt.type;
 
         declare(stmt.name);
         define(stmt.name);
@@ -102,6 +105,7 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
         resolve(stmt.body);
         endScope();
 
+        currentFuncScope = previous;
         return null;
     }
 
@@ -182,6 +186,7 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
 
     @Override
     public Void visitThisExpression(ThisExpression expr) {
+        if (currentFuncScope == FuncType.STATIC) Error.reportResolverError(expr.keyword, "Cannot use `this` inside a static method");
         resolveLocalVariableUsage(expr, expr.keyword);
         return null;
     }
@@ -192,6 +197,8 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
             Error.reportResolverError(expr.keyword, "Cannot use `super` outside of a class");
        } else if (currentClassScope == ClassType.CLASS){
             Error.reportResolverError(expr.keyword, "Cannot use `super` in a class with no superclass");
+       } else if (currentFuncScope == FuncType.STATIC){
+            Error.reportResolverError(expr.keyword, "Cannot use `super` inside a static method");
        } else resolveLocalVariableUsage(expr, expr.keyword);
         return null;
     }
