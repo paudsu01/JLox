@@ -193,6 +193,13 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
 
 
     @Override
+    public Void visitArrayElementExpression(ArrayElementExpression expr) {
+        resolve(expr.arrayExpression);
+        resolve(expr.index);
+        return null;
+    }
+
+    @Override
     public Void visitArrayExpression(ArrayExpression expr) {
         for (Expression expression: expr.elements){
             resolve(expression);

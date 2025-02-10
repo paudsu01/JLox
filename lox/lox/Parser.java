@@ -406,11 +406,11 @@ public class Parser {
         }
     }
 
-    // call -> primary ( ( "(" arguments ? ")" ) | ("." IDENTIFIER ))* ;
+    // call -> primary ( ( "(" arguments ? ")" ) | ("." IDENTIFIER ) | "[" expression "]")* ;
     private Expression parseCall(){
         Expression expression = parsePrimary();
 
-        while (matchCurrentToken(TokenType.LEFT_PAREN) || matchCurrentToken(TokenType.DOT)){
+        while (matchCurrentToken(TokenType.LEFT_PAREN) || matchCurrentToken(TokenType.DOT) || matchCurrentToken(TokenType.LEFT_BRACKET)){
 
             if (matchCurrentToken(TokenType.LEFT_PAREN)){
                 consumeToken(TokenType.LEFT_PAREN);
@@ -422,11 +422,16 @@ public class Parser {
                 expression = new CallExpression(expression, getCurrentToken(), arguments);
                 consumeToken(TokenType.RIGHT_PAREN);
 
-            } else{
+            } else if (matchCurrentToken(TokenType.DOT)){
                 consumeToken(TokenType.DOT);
                 Token token = getCurrentToken();
                 expression = new GetExpression(expression, token);
                 consumeToken(TokenType.IDENTIFIER);
+
+            } else {
+                consumeToken(TokenType.LEFT_BRACKET);
+                expression = new ArrayElementExpression(expression, parseExpression());
+                consumeToken(TokenType.RIGHT_BRACKET);
             }
         }
         return expression;
@@ -445,7 +450,7 @@ public class Parser {
         return arguments;
     }
 
-    // primary -> NUMBER | STRING | IDENTIFIER | "true" | "false" | "nil" | "(" expression ")" | "super" "." IDENTIFIER | "[" (expression ("," expression)* )? "]";
+    // primary -> NUMBER | STRING | IDENTIFIER | "true" | "false" | "nil" | "(" expression ")" | "super" "." IDENTIFIER | "[" (expression ("," expression)* )? "]" ;
     private Expression parsePrimary() {
         Token currentToken = getCurrentToken();
         consumeToken();
