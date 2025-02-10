@@ -223,9 +223,17 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
                     return stringify(leftValue) + (String)rightValue;
                 } else if ((rightValue instanceof Double) && (leftValue instanceof String)){
                     return (String)leftValue + stringify(rightValue); 
+
+                } else if ((rightValue instanceof LoxArray) && (leftValue instanceof LoxArray)){
+
+                    ArrayList<Object> newArrayList = new ArrayList<>();
+                    newArrayList.addAll(((LoxArray)leftValue).values);
+                    newArrayList.addAll(((LoxArray)rightValue).values);
+                    return new LoxArray(newArrayList.size(), newArrayList);
+
                 }
 
-                RuntimeError err = new RuntimeError(expr.operator, "Both numbers, both strings, or one of each number and string expected");
+                RuntimeError err = new RuntimeError(expr.operator, "Both numbers, both strings, both arrays, or one of each number and string expected");
                 throw err;
 
             case SUBTRACT:
@@ -309,6 +317,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
             // For "number" native function
             throw Error.createRuntimeError(expr.closingParen, "Cannot convert String to Number");
         } catch(IllegalArgumentException e){
+            // For 'len' native function
             throw Error.createRuntimeError(expr.closingParen, "Argument provided is illegal");
         }
         return functionCall;
