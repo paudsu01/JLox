@@ -175,6 +175,18 @@ class SuperExpression extends Expression{
 	 return visit.visitSuperExpression(this);}
 }
 
+class ArrayExpression extends Expression{
+	final ArrayList<Expression> elements;
+
+	ArrayExpression(ArrayList<Expression> elements){
+		this.elements = elements;
+	}
+
+	@Override
+	<R> R accept(ExpressionVisitor<R> visit){
+	 return visit.visitArrayExpression(this);}
+}
+
 
 interface ExpressionVisitor<R>{
 	R visitBinaryExpression(BinaryExpression expr);
@@ -189,4 +201,5 @@ interface ExpressionVisitor<R>{
 	R visitSetExpression(SetExpression expr);
 	R visitThisExpression(ThisExpression expr);
 	R visitSuperExpression(SuperExpression expr);
+	R visitArrayExpression(ArrayExpression expr);
 }

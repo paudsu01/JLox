@@ -191,6 +191,15 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
         return null;
     }
 
+
+    @Override
+    public Void visitArrayExpression(ArrayExpression expr) {
+        for (Expression expression: expr.elements){
+            resolve(expression);
+        }
+        return null;
+    }
+
     @Override
     public Void visitSuperExpression(SuperExpression expr) {
         if (currentClassScope == ClassType.NONE){

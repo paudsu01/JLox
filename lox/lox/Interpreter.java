@@ -150,6 +150,15 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     @Override
+    public Object visitArrayExpression(ArrayExpression expr){
+        ArrayList<Object> values = new ArrayList<>();
+        for (Expression expression : expr.elements){
+            values.add(evaluate(expression));
+        }
+        return new LoxArray(values.size(), values);
+    }
+
+    @Override
     public Object visitSuperExpression(SuperExpression expr){
         LoxClass superclass = (LoxClass) environment.getAt(expr.keyword, locals.get(expr));
         LoxInstance instance = (LoxInstance) environment.getThis();
@@ -388,7 +397,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         return err;
     }
 
-    private String stringify(Object value){
+    public static String stringify(Object value){
 
         if (value instanceof String) return (String)value;
         if (value == null) return "nil";

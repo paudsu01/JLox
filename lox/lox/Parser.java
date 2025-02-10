@@ -445,7 +445,7 @@ public class Parser {
         return arguments;
     }
 
-    // primary -> NUMBER | STRING | IDENTIFIER | "true" | "false" | "nil" | "(" expression ")" | "super" "." IDENTIFIER ;
+    // primary -> NUMBER | STRING | IDENTIFIER | "true" | "false" | "nil" | "(" expression ")" | "super" "." IDENTIFIER | "[" (expression ("," expression)* )? "]";
     private Expression parsePrimary() {
         Token currentToken = getCurrentToken();
         consumeToken();
@@ -468,6 +468,18 @@ public class Parser {
                 Token method = getCurrentToken();
                 consumeToken(TokenType.IDENTIFIER, "Superclass method name expected");
                 return new SuperExpression(currentToken, method);
+
+            case "[":
+                ArrayList<Expression> elements = new ArrayList<>();
+
+                if (!matchCurrentToken(TokenType.RIGHT_BRACKET)) elements.add(parseExpression());
+                while (matchCurrentToken(TokenType.COMMA)){
+                    consumeToken(TokenType.COMMA);
+                    elements.add(parseExpression());
+                }
+
+                consumeToken(TokenType.RIGHT_BRACKET, "']' bracket expected");
+                return new ArrayExpression(elements);
 
             default:
                 if (currentToken.type == TokenType.NUMBER || currentToken.type == TokenType.STRING){

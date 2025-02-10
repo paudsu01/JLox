@@ -70,7 +70,7 @@ public class LoxScanner{
             case '[':
                 addToken(LEFT_BRACKET); break;
             case ']':
-                addToken(LEFT_BRACKET); break;
+                addToken(RIGHT_BRACKET); break;
             case '(':
                 addToken(LEFT_PAREN); break;
             case ')':
