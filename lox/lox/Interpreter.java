@@ -308,6 +308,8 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         } catch (NumberFormatException e) {
             // For "number" native function
             throw Error.createRuntimeError(expr.closingParen, "Cannot convert String to Number");
+        } catch(IllegalArgumentException e){
+            throw Error.createRuntimeError(expr.closingParen, "Argument provided is illegal");
         }
         return functionCall;
     }
@@ -415,22 +417,45 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     private void addNativeFunctions(){
 
-        // Predefined clock function
-        environment.define("clock",
-            new LoxCallable(){
+            // Built-in `len` function for length of string / arrays
+            environment.define("len",
+                new LoxCallable(){
 
                 @Override
-                public int arity(){ return 0; }
+                public int arity(){ return 1; }
 
+                @SuppressWarnings("all")
                 @Override
                 public Object call(Interpreter interpreter, ArrayList<Object> arguments) {
-                    return (double) System.currentTimeMillis() / 1000;
+                    Object argument = arguments.get(0);
+                    if (argument instanceof LoxArray){
+                        return ((LoxArray)argument).capacity;
+                    } else if (argument instanceof String){
+                        return ((String)argument).length();
+                    } else throw new IllegalArgumentException();
                 }
 
                 public String toString(){
-                    return "<native fn: clock -> returns current time in second(s)>";
+                    return "<native fn: len -> returns length of LoxString or # of elements in array based on the argument>";
                 }
             });
+
+            // Predefined clock function
+            environment.define("clock",
+                new LoxCallable(){
+
+                    @Override
+                    public int arity(){ return 0; }
+
+                    @Override
+                    public Object call(Interpreter interpreter, ArrayList<Object> arguments) {
+                        return (double) System.currentTimeMillis() / 1000;
+                    }
+
+                    public String toString(){
+                        return "<native fn: clock -> returns current time in second(s)>";
+                    }
+                });
         
             // Predefined inputInt function
             environment.define("input",
