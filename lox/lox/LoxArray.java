@@ -12,6 +12,10 @@ class LoxArray{
         this.values = values; 
     }
 
+    void updateCapacity(){
+        capacity = values.size();
+    }
+
     @Override
     public String toString(){
             StringBuilder sb = new StringBuilder();
@@ -25,4 +29,5 @@ class LoxArray{
             sb.append(" ]");
             return sb.toString();
     }
+
 }

@@ -171,6 +171,30 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     @Override
+    public Object visitArrayElementAssignmentExpression(ArrayElementAssignmentExpression expr){
+
+        Object lhs = evaluate(expr.arrayExpression);
+        if (!(lhs instanceof LoxArray)) throw Error.createRuntimeError(expr.leftBracket, "Can assign element of LoxArray type object only");
+        LoxArray array = (LoxArray) lhs;
+
+        Object index = evaluate(expr.index);
+        if (!(index instanceof Double)) throw Error.createRuntimeError(expr.leftBracket, "Element index has to be a number");
+        Double ind = (Double) index;
+        if (ind % 1 != 0 || ind < 0 || (ind > array.capacity)) throw Error.createRuntimeError(expr.leftBracket, "Invalid index to assign to an array");
+
+        Object value = evaluate(expr.value);
+
+        if (ind == array.capacity){
+            array.values.add(value);
+        } else {
+            array.values.set(ind.intValue(), value);
+        }
+        array.updateCapacity();
+
+        return value;
+    }
+
+    @Override
     public Object visitSuperExpression(SuperExpression expr){
         LoxClass superclass = (LoxClass) environment.getAt(expr.keyword, locals.get(expr));
         LoxInstance instance = (LoxInstance) environment.getThis();
