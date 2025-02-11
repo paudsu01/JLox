@@ -16,14 +16,14 @@ While most of my implementation follows the guidelines for the Lox language, the
 * Native functions: `input`, `clock`, `number` and `len`.<br><br>
   > `input`: Calling this native function will read a string from standard input.<br>
   > `clock`: Calling this native function will return the current time in seconds.<br>
-  > `number`: Calling this native function will convert the argument provided to number, if possible.
-  > `len`: Calling this native function will provide the length of a string or # of elements in an array depending on the single argument provided. Raises error otherwise.
+  > `number`: Calling this native function will convert the argument provided to number, if possible.<br>
+  > `len`: Calling this native function will provide the length of a string or # of elements in an array depending on the single argument provided. Raises error otherwise.<br>
 * String and number concatenation
-* Array implementation 
-> Check [sampleFiles/array.lox](sampleFiles/array.lox) file to check out how arrays work in Jlox<sup>*</sup>.
-> Check [Issue #26](https://github.com/paudsu01/JLox/issues/26) to learn more about arrays in Jlox<sup>*</sup>.
-* Static methods for classes
-> Check [sampleFiles/staticMethods.lox](sampleFiles/staticMethods.lox) file to check out how static methods work in Jlox<sup>*</sup>.
+* Array implementation <br><br>
+  > Check [sampleFiles/array.lox](sampleFiles/array.lox) file to check out how arrays work.<br>
+  > Check [Issue #26](https://github.com/paudsu01/JLox/issues/26) to learn more about arrays in Jlox<sup>*</sup>.
+* Static methods for classes <br><br>
+  > Check [sampleFiles/staticMethods.lox](sampleFiles/staticMethods.lox) file to check out how static methods work in Jlox<sup>*</sup>.
 
 ## Installation guide:
 
