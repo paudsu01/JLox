@@ -279,7 +279,7 @@ public class Parser {
         return parseAssignment();
     }
 
-    // assignment -> or | (call ".")? IDENTIFIER "=" assignment
+    // assignment -> or | (call ".")? IDENTIFIER "=" assignment | call "[" expression "]" "=" assignment;
     private Expression parseAssignment(){
 
         Expression expr = parseOr();
@@ -294,6 +294,12 @@ public class Parser {
             Expression expr2 = parseAssignment();
             GetExpression expr1 = (GetExpression) expr;
             return new SetExpression(expr1.object, expr1.name, expr2);
+
+        } else if (matchCurrentToken(TokenType.ASSIGNMENT) && expr instanceof ArrayElementExpression){
+            consumeToken(TokenType.ASSIGNMENT);
+            ArrayElementExpression expr1 = (ArrayElementExpression) expr;
+            Expression expr2 = parseAssignment();
+            return new ArrayElementAssignmentExpression(expr1.leftBracket, expr1.arrayExpression, expr1.index, expr2);
 
         } else if (matchCurrentToken(TokenType.ASSIGNMENT)){
             // error since invalid assignment target
@@ -406,11 +412,11 @@ public class Parser {
         }
     }
 
-    // call -> primary ( ( "(" arguments ? ")" ) | ("." IDENTIFIER ))* ;
+    // call -> primary ( ( "(" arguments ? ")" ) | ("." IDENTIFIER ) | "[" expression "]")* ;
     private Expression parseCall(){
         Expression expression = parsePrimary();
 
-        while (matchCurrentToken(TokenType.LEFT_PAREN) || matchCurrentToken(TokenType.DOT)){
+        while (matchCurrentToken(TokenType.LEFT_PAREN) || matchCurrentToken(TokenType.DOT) || matchCurrentToken(TokenType.LEFT_BRACKET)){
 
             if (matchCurrentToken(TokenType.LEFT_PAREN)){
                 consumeToken(TokenType.LEFT_PAREN);
@@ -422,11 +428,17 @@ public class Parser {
                 expression = new CallExpression(expression, getCurrentToken(), arguments);
                 consumeToken(TokenType.RIGHT_PAREN);
 
-            } else{
+            } else if (matchCurrentToken(TokenType.DOT)){
                 consumeToken(TokenType.DOT);
                 Token token = getCurrentToken();
                 expression = new GetExpression(expression, token);
                 consumeToken(TokenType.IDENTIFIER);
+
+            } else {
+                Token token = getCurrentToken();
+                consumeToken(TokenType.LEFT_BRACKET);
+                expression = new ArrayElementExpression(token, expression, parseExpression());
+                consumeToken(TokenType.RIGHT_BRACKET);
             }
         }
         return expression;
@@ -445,7 +457,7 @@ public class Parser {
         return arguments;
     }
 
-    // primary -> NUMBER | STRING | IDENTIFIER | "true" | "false" | "nil" | "(" expression ")" | "super" "." IDENTIFIER ;
+    // primary -> NUMBER | STRING | IDENTIFIER | "true" | "false" | "nil" | "(" expression ")" | "super" "." IDENTIFIER | "[" (expression ("," expression)* )? "]" ;
     private Expression parsePrimary() {
         Token currentToken = getCurrentToken();
         consumeToken();
@@ -468,6 +480,18 @@ public class Parser {
                 Token method = getCurrentToken();
                 consumeToken(TokenType.IDENTIFIER, "Superclass method name expected");
                 return new SuperExpression(currentToken, method);
+
+            case "[":
+                ArrayList<Expression> elements = new ArrayList<>();
+
+                if (!matchCurrentToken(TokenType.RIGHT_BRACKET)) elements.add(parseExpression());
+                while (matchCurrentToken(TokenType.COMMA)){
+                    consumeToken(TokenType.COMMA);
+                    elements.add(parseExpression());
+                }
+
+                consumeToken(TokenType.RIGHT_BRACKET, "']' bracket expected");
+                return new ArrayExpression(elements);
 
             default:
                 if (currentToken.type == TokenType.NUMBER || currentToken.type == TokenType.STRING){

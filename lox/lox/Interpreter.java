@@ -150,6 +150,51 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
     }
 
     @Override
+    public Object visitArrayExpression(ArrayExpression expr){
+        ArrayList<Object> values = new ArrayList<>();
+        for (Expression expression : expr.elements){
+            values.add(evaluate(expression));
+        }
+        return new LoxArray(values.size(), values);
+    }
+
+    @Override
+    public Object visitArrayElementExpression(ArrayElementExpression expr){
+        Object lhs = evaluate(expr.arrayExpression);
+        if (!(lhs instanceof LoxArray)) throw Error.createRuntimeError(expr.leftBracket, "Can access element of LoxArray type object only");
+
+        Object index = evaluate(expr.index);
+        if (!(index instanceof Double)) throw Error.createRuntimeError(expr.leftBracket, "Element index has to be a number");
+        
+        if (((Double)index) % 1 != 0 || ((Double)index) < 0 || ((Double)index >= ((LoxArray)lhs).capacity)) throw Error.createRuntimeError(expr.leftBracket, "Invalid index to access array element");
+        return ((LoxArray)lhs).values.get(((Double)index).intValue());
+    }
+
+    @Override
+    public Object visitArrayElementAssignmentExpression(ArrayElementAssignmentExpression expr){
+
+        Object lhs = evaluate(expr.arrayExpression);
+        if (!(lhs instanceof LoxArray)) throw Error.createRuntimeError(expr.leftBracket, "Can assign element of LoxArray type object only");
+        LoxArray array = (LoxArray) lhs;
+
+        Object index = evaluate(expr.index);
+        if (!(index instanceof Double)) throw Error.createRuntimeError(expr.leftBracket, "Element index has to be a number");
+        Double ind = (Double) index;
+        if (ind % 1 != 0 || ind < 0 || (ind > array.capacity)) throw Error.createRuntimeError(expr.leftBracket, "Invalid index to assign to an array");
+
+        Object value = evaluate(expr.value);
+
+        if (ind == array.capacity){
+            array.values.add(value);
+        } else {
+            array.values.set(ind.intValue(), value);
+        }
+        array.updateCapacity();
+
+        return value;
+    }
+
+    @Override
     public Object visitSuperExpression(SuperExpression expr){
         LoxClass superclass = (LoxClass) environment.getAt(expr.keyword, locals.get(expr));
         LoxInstance instance = (LoxInstance) environment.getThis();
@@ -214,9 +259,17 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
                     return stringify(leftValue) + (String)rightValue;
                 } else if ((rightValue instanceof Double) && (leftValue instanceof String)){
                     return (String)leftValue + stringify(rightValue); 
+
+                } else if ((rightValue instanceof LoxArray) && (leftValue instanceof LoxArray)){
+
+                    ArrayList<Object> newArrayList = new ArrayList<>();
+                    newArrayList.addAll(((LoxArray)leftValue).values);
+                    newArrayList.addAll(((LoxArray)rightValue).values);
+                    return new LoxArray(newArrayList.size(), newArrayList);
+
                 }
 
-                RuntimeError err = new RuntimeError(expr.operator, "Both numbers, both strings, or one of each number and string expected");
+                RuntimeError err = new RuntimeError(expr.operator, "Both numbers, both strings, both arrays, or one of each number and string expected");
                 throw err;
 
             case SUBTRACT:
@@ -299,6 +352,9 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         } catch (NumberFormatException e) {
             // For "number" native function
             throw Error.createRuntimeError(expr.closingParen, "Cannot convert String to Number");
+        } catch(IllegalArgumentException e){
+            // For 'len' native function
+            throw Error.createRuntimeError(expr.closingParen, "Argument provided is illegal");
         }
         return functionCall;
     }
@@ -388,7 +444,7 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
         return err;
     }
 
-    private String stringify(Object value){
+    public static String stringify(Object value){
 
         if (value instanceof String) return (String)value;
         if (value == null) return "nil";
@@ -406,22 +462,45 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
 
     private void addNativeFunctions(){
 
-        // Predefined clock function
-        environment.define("clock",
-            new LoxCallable(){
+            // Built-in `len` function for length of string / arrays
+            environment.define("len",
+                new LoxCallable(){
 
                 @Override
-                public int arity(){ return 0; }
+                public int arity(){ return 1; }
 
+                @SuppressWarnings("all")
                 @Override
                 public Object call(Interpreter interpreter, ArrayList<Object> arguments) {
-                    return (double) System.currentTimeMillis() / 1000;
+                    Object argument = arguments.get(0);
+                    if (argument instanceof LoxArray){
+                        return ((LoxArray)argument).capacity;
+                    } else if (argument instanceof String){
+                        return ((String)argument).length();
+                    } else throw new IllegalArgumentException();
                 }
 
                 public String toString(){
-                    return "<native fn: clock -> returns current time in second(s)>";
+                    return "<native fn: len -> returns length of LoxString or # of elements in array based on the argument>";
                 }
             });
+
+            // Predefined clock function
+            environment.define("clock",
+                new LoxCallable(){
+
+                    @Override
+                    public int arity(){ return 0; }
+
+                    @Override
+                    public Object call(Interpreter interpreter, ArrayList<Object> arguments) {
+                        return (double) System.currentTimeMillis() / 1000;
+                    }
+
+                    public String toString(){
+                        return "<native fn: clock -> returns current time in second(s)>";
+                    }
+                });
         
             // Predefined inputInt function
             environment.define("input",
