@@ -279,7 +279,7 @@ public class Parser {
         return parseAssignment();
     }
 
-    // assignment -> or | (call ".")? IDENTIFIER "=" assignment
+    // assignment -> or | (call ".")? IDENTIFIER "=" assignment | call "[" expression "]" "=" assignment;
     private Expression parseAssignment(){
 
         Expression expr = parseOr();
@@ -294,6 +294,12 @@ public class Parser {
             Expression expr2 = parseAssignment();
             GetExpression expr1 = (GetExpression) expr;
             return new SetExpression(expr1.object, expr1.name, expr2);
+
+        } else if (matchCurrentToken(TokenType.ASSIGNMENT) && expr instanceof ArrayElementExpression){
+            consumeToken(TokenType.ASSIGNMENT);
+            ArrayElementExpression expr1 = (ArrayElementExpression) expr;
+            Expression expr2 = parseAssignment();
+            return new ArrayElementAssignmentExpression(expr1.leftBracket, expr1.arrayExpression, expr1.index, expr2);
 
         } else if (matchCurrentToken(TokenType.ASSIGNMENT)){
             // error since invalid assignment target

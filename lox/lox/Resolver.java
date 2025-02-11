@@ -200,6 +200,14 @@ public class Resolver implements ExpressionVisitor<Void>, StatementVisitor<Void>
     }
 
     @Override
+    public Void visitArrayElementAssignmentExpression(ArrayElementAssignmentExpression expr){
+        resolve(expr.arrayExpression);
+        resolve(expr.index);
+        resolve(expr.value);
+        return null;
+    }
+
+    @Override
     public Void visitArrayExpression(ArrayExpression expr) {
         for (Expression expression: expr.elements){
             resolve(expression);
