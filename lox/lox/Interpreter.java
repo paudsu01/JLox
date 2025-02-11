@@ -474,9 +474,9 @@ public class Interpreter implements ExpressionVisitor<Object>, StatementVisitor<
                 public Object call(Interpreter interpreter, ArrayList<Object> arguments) {
                     Object argument = arguments.get(0);
                     if (argument instanceof LoxArray){
-                        return ((LoxArray)argument).capacity;
+                        return (double) (((LoxArray)argument).capacity);
                     } else if (argument instanceof String){
-                        return ((String)argument).length();
+                        return (double) (((String)argument).length());
                     } else throw new IllegalArgumentException();
                 }
 

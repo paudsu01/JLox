@@ -1,0 +1,45 @@
+// Arrays are dynamic in Jlox* (no fixed size)
+
+// Helper function
+fun printArrays(){
+
+	print "-------------------------------";
+	print "Array x right now: " + len(x) + " elements";
+	print x;
+
+	print "Array y right now: " + len(y) + " elements";
+	print y;
+	print "-------------------------------";
+
+}
+
+// Declaration of empty array
+var x = [];
+
+// Declaration of array with 3 elements
+var y = [1,2,"Supreme"];
+
+printArrays();
+
+// Adding three arrays
+print "Adding two arrays: ";
+print y + ["Nepal"];
+
+// Array element lookup
+print "-------------------------------";
+print "The third element(index =2) of array 'y' is: " + y[2];
+
+
+// Appending element to array
+// Appending an element to array would be equivalent to : x[len(x)] = expr1;
+print "Appending 'Anna' to array 'x'";
+x[len(x)] = "anna";
+printArrays();
+
+
+// Array assignment/append can only be done in range : 0 to len(x)
+print "Reassiging first element of array 'y' to 2049";
+y[0] = 2049;
+printArrays();
+
+
