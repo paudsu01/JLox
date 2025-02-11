@@ -28,7 +28,7 @@ public class generateAST{
         exprClassesToFields.put(exprClasses[10], "Token keyword");
         exprClassesToFields.put(exprClasses[11], "Token keyword:Token method");
         exprClassesToFields.put(exprClasses[12], "ArrayList<Expression> elements");
-        exprClassesToFields.put(exprClasses[13], "Expression arrayExpression: Expression index");
+        exprClassesToFields.put(exprClasses[13], "Token leftBracket:Expression arrayExpression: Expression index");
 
 
         // Define the classes and their fields for the output file for Statement.java

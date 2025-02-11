@@ -429,8 +429,9 @@ public class Parser {
                 consumeToken(TokenType.IDENTIFIER);
 
             } else {
+                Token token = getCurrentToken();
                 consumeToken(TokenType.LEFT_BRACKET);
-                expression = new ArrayElementExpression(expression, parseExpression());
+                expression = new ArrayElementExpression(token, expression, parseExpression());
                 consumeToken(TokenType.RIGHT_BRACKET);
             }
         }

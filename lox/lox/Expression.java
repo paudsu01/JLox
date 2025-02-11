@@ -188,10 +188,12 @@ class ArrayExpression extends Expression{
 }
 
 class ArrayElementExpression extends Expression{
+	final Token leftBracket;
 	final Expression arrayExpression;
 	final  Expression index;
 
-	ArrayElementExpression(Expression arrayExpression,  Expression index){
+	ArrayElementExpression(Token leftBracket, Expression arrayExpression,  Expression index){
+		this.leftBracket = leftBracket;
 		this.arrayExpression = arrayExpression;
 		this.index = index;
 	}
